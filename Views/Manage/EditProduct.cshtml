@@ -1,0 +1,108 @@
+﻿@model Product
+
+<form method="post">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Modify Product</h2>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label mt-4" for="inputDefault" asp-for="Name"></label>
+            <input type="text" class="form-control" asp-for="Name">
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>
+        <div class="form-group">
+            <label class="form-label mt-4" for="inputDefault" asp-for="Description"></label>
+            <textarea class="form-control" rows="3" asp-for="Description"></textarea>
+            <span class="text-danger" asp-validation-for="Description"></span>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label mt-4" for="inputDefault" asp-for="Category"></label>
+            <select class="form-select" asp-for="Category">
+                @foreach (string Cat in Product.Categories)
+                {
+                    <option>@Cat</option>
+                }
+            </select>
+            <span class="text-danger" asp-validation-for="Category"></span>
+        </div>
+        <div class="form-group">
+            <label class="form-label mt-4" for="inputDefault" asp-for="PriceCents">Price in Cents</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text">EGP</span>
+                <input type="number" min="0" class="form-control" aria-label="Amount" asp-for="PriceCents">
+            </div>
+            <span class="text-danger" asp-validation-for="PriceCents"></span>
+        </div>
+        <div class="form-group">
+            <label class="form-label mt-4" for="inputDefault" asp-for="SalePercent">Sale Percent</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text">%</span>
+                <input type="number" min="0" max="99" class="form-control" aria-label="Amount" asp-for="SalePercent">
+            </div>
+            <div class="form-group">
+                <label class="col-form-label mt-4" for="inputDefault" asp-for="SKU"></label>
+                <input type="number" min="0" class="form-control" asp-for="SKU">
+                <span class="text-danger" asp-validation-for="SKU"></span>
+            </div><br />
+            <div class="form-group media-preview">
+                <label class="col-form-label mt-4">Existing Media</label>
+                @foreach (string source in ViewBag.FileNames)
+                {
+                    var imagePath = Url.Content($"~/ItemMedia/{Model.Id.ToString()}/{source}");
+                    <div class="preview-image">
+                        <img src="@imagePath">
+                    </div>
+                }
+            </div>
+            <div class="form-group">
+                <label class="col-form-label mt-4" for="inputDefault" asp-for="Media">Add Media </label>
+                <input type="file" multiple class="form-control-file" name="Media" asp-for="Media">
+                <span class="text-danger" asp-validation-for="Media"></span>
+            </div>
+            <!-- Preview Section -->
+            <div class="form-group">
+                <div id="media-preview" class="media-preview"></div>
+            </div>
+            <div class="row p-3">
+                <div class="col-6">
+                    <button type="submit" class="btn btn-info">Update</button>
+                    <a class="btn btn-primary" asp-controller="Store" asp-action="Index">Back to Index</a>
+                </div>
+                <div class="col-6 text-end">
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete &nbsp; <i class="bi bi-trash3-fill"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Item</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete "@Model.Name"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form method="post" asp-controller="Manage" asp-action="DeleteProduct" asp-route-Id="@Model.Id">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts{
+    <script src="~/js/MediaInput.js"></script>
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

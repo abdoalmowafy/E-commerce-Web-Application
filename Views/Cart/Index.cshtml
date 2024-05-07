@@ -1,0 +1,99 @@
+﻿@model ICollection<CartProduct>
+@using System.IO
+
+
+<div class="container p-4">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Index Cart Products</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a class="btn btn-success" asp-controller="Store" asp-action="Index">Add More Products &nbsp; <i class="bi bi-plus-circle"></i></a>
+        </div>
+    </div>
+    <div class="row pt-4">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" width="22%">Product</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Remove</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var data in Model)
+            {
+                var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{data.Product.Id}")[0]);
+                    <tr>
+                        <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id><img src="~/ProductMedia/@data.Product.Id/@MainImg"></a></td>
+                    <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id class="text-decoration-none text-body">@data.Product.Name</a></td>
+                    <td>
+                        <div class="d-flex">
+                        @if(data.Quantity > 1)
+                        {
+                            <a class="btn text-danger" asp-controller="Cart" asp-action="ModifyProducts" asp-route-ProductId=@data.Product.Id asp-route-count=@(data.Quantity-1)><i class="bi bi-dash-square"></i></a>
+                        }
+                        else
+                        {
+                            <a class="btn text-danger disabled border-0"><i class="bi bi-dash-square"></i></a>
+                        }
+                        <p class="count-display m-1">@data.Quantity</p>
+                        <form method="get" asp-action="ModifyProducts" asp-route-ProductId=@data.Product.Id >
+                            <input type="number" value=@data.Quantity hidden name="count" class="count-input fit" min=0 max=@data.Product.SKU>
+                        </form>
+                        @if(data.Product.SKU > data.Quantity)
+                        {
+                            <a class="btn text-success" asp-controller="Cart" asp-action="ModifyProducts" asp-route-ProductId=@data.Product.Id asp-route-count=@(data.Quantity+1)><i class="bi bi-plus-square"></i></a>
+                        }
+                        else
+                        {
+                            <a class="btn text-success disabled border-0"><i class="bi bi-plus-square"></i></a>
+
+                        }
+                        </div>
+                    </td>
+                        @if (data.Product.SalePercent > 0)
+                        {
+                            <td>
+                                <p>(@(data.Product.PriceCents * 0.01 * (1 - data.Product.SalePercent / 100)) EGP) <strong>@(data.Product.PriceCents * 0.01 * data.Quantity * (1 - data.Product.SalePercent / 100)) EGP</strong> &nbsp; <span class="badge bg-success">@(data.Product.SalePercent)% OFF</span></p>
+                                <p class="text-danger text-decoration-line-through">(@(data.Product.PriceCents * 0.01) EGP) <strong>@(data.Product.PriceCents * 0.01 * data.Quantity) EGP</strong></p>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>(@(data.Product.PriceCents * 0.01) EGP) <strong>@(data.Product.PriceCents * 0.01 * data.Quantity) EGP</strong></td>
+                        }
+                        <td><a class="btn btn-danger" asp-controller="Cart" asp-action="ModifyProducts" asp-route-ProductId=@data.Product.Id><i class="bi bi-trash3"></i></a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (Model.Count > 0)
+        {
+            <form method="post" asp-controller="Cart" asp-action="ApplyPromoCode">
+                <div class="row">
+                    <div class="col-2">
+                        <label class="col-form-label" for="inputDefault">PromoCode:</label>
+                    </div>
+                    <div class="col-7">
+                        <input type="text" name="PromoCode" class="form-control" value=@ViewBag.PromoCode>
+                    </div>
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-info">Apply</button>
+                    </div>
+                </div>
+            </form>
+            <hr class="mx-auto mx-lg-0 my-5">
+            <form class="d-flex" method="post" asp-controller="Order" asp-action="New" asp-route-CartId=@ViewBag.Id>
+                <button class="btn btn-primary" type="submit">Purchase Cart Products &nbsp; <i class="bi bi-clipboard2-check"></i></button>
+            </form>
+            @* <a class="btn btn-primary" asp-controller="Order" asp-action="New">Purchase Cart Products &nbsp; <i class="bi bi-clipboard2-check"></i></a> *@
+        }
+        else
+        {
+            <p>Your Cart is Empty. Add Products to Purchase!</p>
+        }
+    </div>
+</div>

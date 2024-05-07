@@ -1,0 +1,74 @@
+﻿@model int
+
+@{
+}
+<form method="post" asp-route-orderId=@Model>
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Checkout</h2>
+        </div>
+        <fieldset class="form-group">
+            <legend class="mt-4">Shipping Location</legend>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="DeliveryNeeded" id="DeliveryNeeded1" value="false" checked>
+                <label class="form-check-label" for="DeliveryNeeded1">
+                    Express Shipping <strong>(To Talkha)</strong>
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="DeliveryNeeded" id="DeliveryNeeded2" value="true">
+                <label class="form-check-label" for="DeliveryNeeded2">
+                    Ship to my location <strong>(+ Shipping Fee)</strong>
+                </label>
+            </div>
+            @*             <div class="form-check disabled">
+            <input class="form-check-input" type="radio" name="optionsRadios" id="optionsRadios3" value="Paypal" disabled>
+            <label class="form-check-label" for="optionsRadios3">
+            Paypal
+            </label>
+            </div> *@
+        </fieldset>
+        <fieldset class="form-group">
+            <legend class="mt-4">Payment Method</legend>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="PaymentMethod" id="PaymentMethod1" value="COD" checked>
+                <label class="form-check-label" for="PaymentMethod1">
+                    Cash on Delivery <strong>(+1% Fee)</strong>
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="PaymentMethod" id="PaymentMethod2" value="CreditCard">
+                <label class="form-check-label" for="PaymentMethod2">
+                    Credit Card <br />
+                    <img class="icon" src="~/Mastercard.png" />
+                    <img class="icon" src="~/visa.png" />
+                    <img class="icon" src="~/meeza.png" />
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="PaymentMethod" id="PaymentMethod3" value="MobileWallet">
+                <label class="form-check-label" for="PaymentMethod3">
+                    Mobile Wallet &nbsp; <br />
+                    <img class="icon" src="~/vodafoneCash.png" />
+                    <img class="icon" src="~/etisalatCash.png" />
+                    <img class="icon" src="~/orangeCash.png" />
+                </label>
+                <input type="tel" name="identifier" id="identifier" placeholder="Wallet mobile number" hidden/>
+            </div>
+@*             <div class="form-check disabled">
+                <input class="form-check-input" type="radio" name="optionsRadios" id="optionsRadios3" value="Paypal" disabled>
+                <label class="form-check-label" for="optionsRadios3">
+                    Paypal
+                </label>
+            </div> *@
+        </fieldset>
+        
+        <br /><br />
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>
+
+
+@section Scripts{
+    <script src="~/js/MediaInput.js"></script>
+}

@@ -1,0 +1,17 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<Egost.Areas.Identity.Data.User> SignInManager
+@inject UserManager<Egost.Areas.Identity.Data.User> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <a id="manage" class="btn btn-light text-dark me-2" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserAsync(User).Result!.Name</a>
+    <form id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Home", "Store", new { area = "" })">
+        <button id="logout" type="submit" class="btn btn-primary">Logout</button>
+    </form>
+}
+else
+{
+    <a class="btn btn-light text-dark me-2" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+    <a class="btn btn-primary" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+}
