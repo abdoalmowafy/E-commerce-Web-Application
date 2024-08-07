@@ -2,10 +2,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Egost.Data;
 using Egost.Areas.Identity.Data;
+using DotNetEnv;
 
 
 var builder = WebApplication.CreateBuilder(args); 
 var config = builder.Configuration;
+
+Env.Load();
+builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -26,20 +31,20 @@ builder.Services.AddAuthentication()
    {
        IConfigurationSection googleAuthNSection =
        config.GetSection("Authentication:Google");
-       options.ClientId = googleAuthNSection["ClientId"];
-       options.ClientSecret = googleAuthNSection["ClientSecret"];
+       options.ClientId = googleAuthNSection["ClientId"]!;
+       options.ClientSecret = googleAuthNSection["ClientSecret"]!;
    })
    .AddFacebook(options =>
    {
        IConfigurationSection FBAuthNSection =
        config.GetSection("Authentication:Facebook");
-       options.AppId = FBAuthNSection["AppId"];
-       options.AppSecret = FBAuthNSection["AppSecret"];
+       options.AppId = FBAuthNSection["AppId"]!;
+       options.AppSecret = FBAuthNSection["AppSecret"]!;
    })
    .AddMicrosoftAccount(microsoftOptions =>
    {
-       microsoftOptions.ClientId = config["Authentication:Microsoft:ClientId"];
-       microsoftOptions.ClientSecret = config["Authentication:Microsoft:ClientSecret"];
+       microsoftOptions.ClientId = config["Authentication:Microsoft:ClientId"]!;
+       microsoftOptions.ClientSecret = config["Authentication:Microsoft:ClientSecret"]!;
    });
 
 
@@ -102,17 +107,17 @@ static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
 static async Task SeedSuperUserAsync(UserManager<User> userManager, IConfiguration config)
 {
     IConfigurationSection superUserData = config.GetSection("SuperUser");
-    var superUser = await userManager.FindByEmailAsync(superUserData["Email"]);
+    var superUser = await userManager.FindByEmailAsync(superUserData["Email"]!);
     if (superUser == null)
     {
         superUser = new User { 
-            Name = superUserData["UserName"],
+            Name = superUserData["UserName"]!,
             UserName = superUserData["UserName"],
             Email = superUserData["Email"],
             EmailConfirmed = true,
             Gender = "Male"
         };
-        var result = await userManager.CreateAsync(superUser, superUserData["Password"]);
+        var result = await userManager.CreateAsync(superUser, superUserData["Password"]!);
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(superUser, "Admin");

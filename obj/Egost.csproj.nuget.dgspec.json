@@ -46,9 +46,9 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Bdaya.Net.Paymob": {
+            "DotNetEnv": {
               "target": "Package",
-              "version": "[1.0.4, )"
+              "version": "[3.1.0, )"
             },
             "Microsoft.AspNetCore.Authentication.Facebook": {
               "target": "Package",

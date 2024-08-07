@@ -275,7 +275,6 @@ D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Egost.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Egost.pdb
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Azure.Core.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Azure.Identity.dll
-D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Bdaya.Net.Paymob.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Humanizer.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Facebook.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
@@ -532,3 +531,5 @@ D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\obj\Debug\net8.0\refint\Egost.dll
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\obj\Debug\net8.0\Egost.pdb
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\obj\Debug\net8.0\Egost.genruntimeconfig.cache
 D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\obj\Debug\net8.0\ref\Egost.dll
+D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\DotNetEnv.dll
+D:\Work\Code\ASP.NET Core (MVC) Projects\Egost\bin\Debug\net8.0\Sprache.dll
