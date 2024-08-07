@@ -1,18 +1,14 @@
-﻿@model int
-
-@{
-}
-<form method="post" asp-route-orderId=@Model>
+﻿<form method="post" asp-area="" asp-controller="Order" asp-action="New">
     <div class="border p-3 mt-4">
         <div class="row pb-2">
             <h2 class="text-primary">Checkout</h2>
         </div>
         <fieldset class="form-group">
-            <legend class="mt-4">Shipping Location</legend>
+            <legend class="mt-4">Shipping Address</legend>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="DeliveryNeeded" id="DeliveryNeeded1" value="false" checked>
                 <label class="form-check-label" for="DeliveryNeeded1">
-                    Express Shipping <strong>(To Talkha)</strong>
+                    Express Shipping <strong>(To Egost Store - Cairo)</strong>
                 </label>
             </div>
             <div class="form-check">
@@ -21,19 +17,13 @@
                     Ship to my location <strong>(+ Shipping Fee)</strong>
                 </label>
             </div>
-            @*             <div class="form-check disabled">
-            <input class="form-check-input" type="radio" name="optionsRadios" id="optionsRadios3" value="Paypal" disabled>
-            <label class="form-check-label" for="optionsRadios3">
-            Paypal
-            </label>
-            </div> *@
         </fieldset>
         <fieldset class="form-group">
             <legend class="mt-4">Payment Method</legend>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="PaymentMethod" id="PaymentMethod1" value="COD" checked>
                 <label class="form-check-label" for="PaymentMethod1">
-                    Cash on Delivery <strong>(+1% Fee)</strong>
+                    Cash on Delivery <strong>(+10 EGP Fee)</strong>
                 </label>
             </div>
             <div class="form-check">

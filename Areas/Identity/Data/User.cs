@@ -15,7 +15,8 @@ public class User : IdentityUser
     [PersonalData][AllowedValues("Male", "Female")][MaxLength(6)] public string? Gender { get; set; }
     [PersonalData] public ICollection<Address> Addresses { get; set; }
     public ICollection<Product> WishList { get; set; }
-    public Cart? Cart { get; set; }
+    public ICollection<Order> Orders { get; set; }
+    public Cart Cart { get; set; }
     [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     public ICollection<EditHistory> EditsHistory { get; set; }
 }

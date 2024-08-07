@@ -2,7 +2,8 @@
 using Egost.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Egost.Controllers
 {
@@ -13,9 +14,33 @@ namespace Egost.Controllers
 
         public IActionResult Index()
         {
-            var cart = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name).Cart;
-            var promo = cart.PromoCode;
+            var cart = _db.Users
+                .Include(u => u.Cart)
+                    .ThenInclude(c => c.CartProducts)
+                        .ThenInclude(cp => cp.Product)
+                .Include(u => u.Cart)
+                    .ThenInclude(c => c.PromoCode)
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name)!.Cart;
 
+            var invalidCartProducts = cart.CartProducts.Where(cp => cp.Product.DeletedDateTime.HasValue || cp.Product.SKU < 1 || cp.Quantity > cp.Product.SKU);
+            if (invalidCartProducts.Any()) 
+            {
+                foreach (var cartProduct in invalidCartProducts)
+                {
+                    cart.CartProducts.Remove(cartProduct);
+                    _db.CartProducts.Remove(cartProduct);
+                }
+                _db.Carts.Update(cart);
+                _db.SaveChanges();
+            }
+
+            if (cart.PromoCode != null && (!cart.PromoCode.Active || cart.PromoCode.DeletedDateTime.HasValue))
+            {
+                cart.PromoCode = null;
+                _db.Carts.Update(cart);
+                _db.SaveChanges();
+            }
+            
             ViewBag.PromoCode = cart.PromoCode;
 
             return View(cart.CartProducts);
@@ -28,12 +53,16 @@ namespace Egost.Controllers
             var product = _db.Products.Find(ProductId);
             
             // Redirect to Product Index if ProductId is not valid
-            if (product == null)
+            if (product == null || product.DeletedDateTime.HasValue || product.SKU < 1 || count > product.SKU)
             {
-                return RedirectToAction("Index", "Store");
+                return RedirectToAction("Home", "Store");
             }
             
-            var cart = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name)!.Cart;
+            var cart = _db.Users
+                .Include (u => u.Cart)
+                    .ThenInclude (c => c.CartProducts)
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name)!.Cart;
+            
             var cartProduct = cart.CartProducts.FirstOrDefault(x => x.Product == product);
 
             // Get the Dictionary of Products in the cart and its count
@@ -75,20 +104,34 @@ namespace Egost.Controllers
         // POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ApplyPromoCode(string PromoCode)
+        public IActionResult ApplyPromoCode(string? PromoCode)
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            var cart = user.Cart;
-            var promo = _db.PromoCodes.FirstOrDefault(x => x.Code == PromoCode);
-            if (promo == null)
+            var cart = _db.Users
+                .Include(u => u.Cart)
+                    .ThenInclude(c => c.PromoCode)
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name)!.Cart;
+
+            if (PromoCode.IsNullOrEmpty())
             {
-                TempData["fail"] = "Invalid Promocode!";
+                // Remove promocode
+                cart.PromoCode = null;
+                _db.Carts.Update(cart);
+                _db.SaveChanges();
             }
             else
             {
-                cart.PromoCode = promo;
-                _db.Carts.Update(cart);
-                _db.SaveChanges();
+                // Add promocode
+                var promo = _db.PromoCodes.FirstOrDefault(x => x.Code == PromoCode);
+                if (promo == null)
+                {
+                    TempData["fail"] = "Invalid Promocode!";
+                }
+                else
+                {
+                    cart.PromoCode = promo;
+                    _db.Carts.Update(cart);
+                    _db.SaveChanges();
+                }
             }
             return RedirectToAction("Index");
         }

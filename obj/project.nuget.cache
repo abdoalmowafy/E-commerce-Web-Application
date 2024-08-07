@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "27+M8ufdEC2SWR5dqahx2NrHCVwd4tL7gsUh1l0eQ2ZAEn/BUfdzLV46rVMt1YlKBKloqXBgMqGOww8miATkxg==",
+  "dgSpecHash": "5RVaXfqtjRw=",
   "success": true,
-  "projectFilePath": "D:\\Work\\Code\\ASP.NET 7.0 Core (MVC) Projects\\Egost\\Egost.csproj",
+  "projectFilePath": "D:\\Work\\Code\\ASP.NET Core (MVC) Projects\\Egost\\Egost.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\abdoa\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\abdoa\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",

@@ -8448,11 +8448,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Work\\Code\\ASP.NET 7.0 Core (MVC) Projects\\Egost\\Egost.csproj",
+      "projectUniqueName": "D:\\Work\\Code\\ASP.NET Core (MVC) Projects\\Egost\\Egost.csproj",
       "projectName": "Egost",
-      "projectPath": "D:\\Work\\Code\\ASP.NET 7.0 Core (MVC) Projects\\Egost\\Egost.csproj",
+      "projectPath": "D:\\Work\\Code\\ASP.NET Core (MVC) Projects\\Egost\\Egost.csproj",
       "packagesPath": "C:\\Users\\abdoa\\.nuget\\packages\\",
-      "outputPath": "D:\\Work\\Code\\ASP.NET 7.0 Core (MVC) Projects\\Egost\\obj\\",
+      "outputPath": "D:\\Work\\Code\\ASP.NET Core (MVC) Projects\\Egost\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\abdoa\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -8463,6 +8463,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -8548,7 +8549,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

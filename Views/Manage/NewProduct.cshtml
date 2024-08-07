@@ -7,6 +7,7 @@
         <div class="row pb-2">
             <h2 class="text-primary">New Product</h2>
         </div>
+        <div asp-validation-summary="All"></div>
         <div class="form-group">
             <label class="col-form-label mt-4" for="inputDefault" asp-for="Name"></label>
             <input type="text" class="form-control" asp-for="Name">
@@ -20,7 +21,7 @@
         <div class="form-group">
             <label class="col-form-label mt-4" for="inputDefault" asp-for="Category"></label>
             <select class="form-select" asp-for="Category">
-                @foreach (string Cat in Product.Categories)
+                @foreach (string Cat in ViewBag.Categories)
                 {
                     <option>@Cat</option>
                 }
@@ -51,7 +52,7 @@
         <div class="form-group">
             <label class="col-form-label mt-4" for="inputDefault" asp-for="Media">Upload Product media </label>
             <br>
-            <input type="file" required multiple class="form-control-file" name="Media" asp-for="Media">
+            <input type="file" required multiple class="form-control-file" id="Media" name="Media" asp-for="Media">
             <span class="text-danger" asp-validation-for="Media"></span>
         </div>
         <!-- Preview Section -->
@@ -61,7 +62,7 @@
 
         <br><br>
         <button type="submit" class="btn btn-success">Submit</button>
-        <a class="btn btn-primary" asp-controller="Store" asp-action="Index">Back to Index</a>
+        <a class="btn btn-primary" asp-controller="Store" asp-action="Home">Back to Home</a>
     </div>
 </form>
 

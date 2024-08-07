@@ -74,7 +74,7 @@ document.getElementById("Media").addEventListener("change", function (event) {
                 image.addEventListener("click", function (event) {
                     var modalImage = document.getElementById("modalImage");
                     modalImage = image;
-                    //modalImage.src = e.target.result;
+                    // modalImage.src = e.target.result;
                     var previewModal = new bootstrap.Modal(document.getElementById("mediaPreviewModal"));
                     previewModal.show();
                 });

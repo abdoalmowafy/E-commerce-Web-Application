@@ -1,19 +1,14 @@
-﻿using Azure.Core;
-using Azure;
-using Egost.Data;
+﻿using Egost.Data;
 using Egost.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Configuration;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Egost.Controllers
 {
-    [Authorize]
     public class OrderController(EgostContext db, IConfiguration configuration, HttpClient httpClient) : Controller
     {
         private readonly EgostContext _db = db;
@@ -22,57 +17,75 @@ namespace Egost.Controllers
         private readonly int IntegrationId = int.Parse(configuration.GetSection("Paymob")["IntegrationId"]!);
         private readonly int IframeId = int.Parse(configuration.GetSection("Paymob")["Iframe1Id"]!);
 
+        private static readonly string[] availablePaymentMethods = ["CreditCard", "MobileWallet", "COD"];
 
-        public IActionResult Index(string time)
+        [Authorize]
+        [Route("Order")]
+        public IActionResult Index()
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            IEnumerable<Order> Orders = _db.Orders.Where(x => x.User == user);
+            var user = _db.Users
+                .Include(u => u.Orders)
+                    .ThenInclude(o => o.OrderProducts)
+                        .ThenInclude(op => op.Product)
+                .Include(u => u.Orders)
+                    .ThenInclude(o => o.PromoCode)
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name);
 
-            if (time == "Day") 
-            {
-                Orders = Orders.Where(u => (DateTime.Now - u.CreatedDateTime).Days < 1);
-            }
-            else if (time == "Week") 
-            {
-                Orders = Orders.Where(u => (DateTime.Now - u.CreatedDateTime).Days < 7);
-            }
-            else if (time == "Month") 
-            { 
-                Orders = Orders.Where(u => (DateTime.Now - u.CreatedDateTime).Days < 30);
-            }
-            else if (time == "Year") 
-            { 
-                Orders = Orders.Where(u => (DateTime.Now - u.CreatedDateTime).Days < 365);
-            }
+            IEnumerable<Order> Orders = user.Orders
+                .Where(o => o.Processed).Reverse();
+
             return View(Orders);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> New(string PaymentMethod, bool DeliveryNeeded, string? identifier) 
+        [Authorize]
+        public async Task<IActionResult> New(string PaymentMethod, bool DeliveryNeeded, string? identifier, int ShippingAddressId = 1)
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            var cart = user.Cart;
-            var promo = cart.PromoCode;              
-            
-            ulong totalCentsNoPromo = 0;
-            foreach (var cartProduct in cart.CartProducts)
+            var user = _db.Users
+                .Include(u => u.Orders)
+                .Include(u => u.Cart)
+                    .ThenInclude(c => c.CartProducts)
+                        .ThenInclude(cp => cp.Product)
+                .Include(u => u.Cart)
+                    .ThenInclude(c => c.PromoCode)
+                .Include(u => u.Addresses)
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name)!;
+
+            if(user.Orders.Any(o => !o.DeliveryDateTime.HasValue))
             {
-                var SKU = cartProduct.Product.SKU;
-                if (SKU < 1)
-                {
-                    return RedirectToAction("Index", "Cart");
-                }
-                else if (SKU < cartProduct.Quantity)
-                {
-                    return RedirectToAction("Index", "Cart");
-                }
-                totalCentsNoPromo += Convert.ToUInt64(cartProduct.Product.PriceCents * (1 - cartProduct.Product.SalePercent /100 ) * cartProduct.Quantity);
+                TempData["fail"] = "Can't have two orders at one time!\nContact us!";
+                return RedirectToAction("Index", "Contact");
             }
 
+            var cart = user.Cart;
+            var cartProducts = cart.CartProducts;
+            var promo = cart.PromoCode;
+            Address? address = _db.Addresses.Find(ShippingAddressId);
+
+            if (cartProducts.IsNullOrEmpty() || // Possible cartProducts errors!
+                cartProducts.Any(cp => cp.Quantity < 1 || cp.Product.SKU < cp.Quantity || cp.Product.DeletedDateTime.HasValue) ||
+                (promo != null && (promo.DeletedDateTime.HasValue || !promo.Active)) || // Possible promocode errors!
+                address == null || (!address.StoreAddress && !user.Addresses.Contains(address)) || // Possible input errors!
+                !availablePaymentMethods.Contains(PaymentMethod))
+            {
+                TempData["fail"] = "Something went wrong!";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            bool NeedProcessing = true;
+            ulong Fee = 0;
+            if (PaymentMethod == "COD")
+            {
+                Fee += 1000;
+                NeedProcessing = false;
+            }
+
+            
             // Creating Order
-            var orderProducts = new List<OrderProduct>(cart.CartProducts.Count);
-            foreach (var cartProduct in cart.CartProducts)
+            ulong totalCentsNoPromo = 0;
+            var orderProducts = new List<OrderProduct>(cartProducts.Count);
+            foreach (var cartProduct in cartProducts)
             {
                 var orderProduct = new OrderProduct {
                     Product = cartProduct.Product,
@@ -80,6 +93,7 @@ namespace Egost.Controllers
                     SalePercent = cartProduct.Product.SalePercent,
                     Quantity = cartProduct.Quantity,
                 };
+                totalCentsNoPromo += cartProduct.Product.PriceCents * cartProduct.Quantity * Convert.ToByte(100 - cartProduct.Product.SalePercent) / 100;
                 _db.OrderProducts.Add(orderProduct);
                 orderProducts.Add(orderProduct);
                 cartProduct.Product.SKU -= cartProduct.Quantity;
@@ -91,62 +105,96 @@ namespace Egost.Controllers
                 User = user,
                 PromoCode = promo,
                 PaymentMethod = PaymentMethod,
-                TotalCents = promo == null ? totalCentsNoPromo : Convert.ToUInt64(totalCentsNoPromo * (1 - promo.Percent / 100)),
+                Processed = !NeedProcessing,
+                TotalCents = Fee + (promo == null ? totalCentsNoPromo : totalCentsNoPromo * Convert.ToByte(100 - promo.Percent) / 100),
                 DeliveryNeeded = DeliveryNeeded,
-                OrderProducts = orderProducts
+                OrderProducts = orderProducts,
+                Address = address
             };
-            _db.Orders.Add(order);
-            cart.CartProducts = [];
-            cart.PromoCode = null;
-            _db.Carts.Update(cart);
-
 
             // Processing Order
-            bool successful = true;
             if (PaymentMethod == "COD")
             {
-                order.TotalCents += 1000;
+                _db.Orders.Add(order);
+                _db.SaveChanges();
+                TempData["success"] = "Order was processed successfully!";
+                return RedirectToAction("Index");
             }
             else if (PaymentMethod == "CreditCard") 
             {
                 string token = await PaymentApiFlow(order);
-                CardPayment(token);
-                var response = await _httpClient.GetAsync(BaseUrl);
-            }
-            else if (PaymentMethod == "MobileWallet")
-            {
-                string token = await PaymentApiFlow(order);
-                await MobileWallet(token, identifier);
-                var response = await _httpClient.GetAsync(BaseUrl);
-            }
-
-
-            if (successful)
-            {
-                // Successful Order: Adding Order To Db
-                _db.SaveChanges();
-                TempData["success"] = "Order submitted successfully!";
-                return RedirectToAction("Index");
+                return CardPayment(token);
             }
             else
             {
-                TempData["fail"] = "Order wasn't successful, please try again later!";
-                return RedirectToAction("Index", "Cart");
+                string token = await PaymentApiFlow(order);
+                return await MobileWallet(token, identifier!);
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public void PaymobResponse(string response)
+        {
+            var responseObject = JsonSerializer.Deserialize<dynamic>(response);
+            int? OrderId = int.Parse(responseObject.GetSection["order"]);
+            var order = _db.Orders
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Cart)
+                        .ThenInclude(c => c.CartProducts)
+                .Include(o => o.OrderProducts)
+                    .ThenInclude(cp => cp.Product)
+                .First(o => o.PaymobOrderId == OrderId);
+            var cart = order.User.Cart;
+
+            if (responseObject.GetSection["success"])
+            {
+                // Flag order as processed
+                order.Processed = true;
+                _db.Orders.Update(order);
+
+                // Empty Cart
+                _db.CartProducts.RemoveRange(cart.CartProducts);
+                cart.CartProducts = [];
+                cart.PromoCode = null;
+                _db.Carts.Update(cart);
+            }
+            else
+            {
+                // Delete order
+                foreach (OrderProduct orderProduct in order.OrderProducts)
+                {
+                    orderProduct.Product.SKU += orderProduct.Quantity;
+                    _db.Products.Update(orderProduct.Product);
+                    _db.OrderProducts.Remove(orderProduct);
+                }
+                _db.Orders.Remove(order);
+            }
+            _db.SaveChanges();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
         public IActionResult Delete(int? orderId)
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            var order = _db.Orders.Find(orderId);
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
+            var order = _db.Orders
+                .Include(o => o.OrderProducts)
+                    .ThenInclude(op => op.Product)  
+                .FirstOrDefault(o => o.Id == orderId);
 
             if (order == null || order.User != user)
             {
                 return RedirectToAction("Index");
             }
 
+            // Delete order
+            foreach (OrderProduct orderProduct in order.OrderProducts)
+            {
+                orderProduct.Product.SKU += orderProduct.Quantity;
+                _db.Products.Update(orderProduct.Product);
+            }
             order.DeletedDateTime = DateTime.Now;
             _db.Orders.Update(order);
             _db.SaveChanges();
@@ -202,7 +250,7 @@ namespace Egost.Controllers
             requestJson = JsonSerializer.Serialize(request2);
             requestContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
             response = await _httpClient.PostAsync($"{BaseUrl}/ecommerce/orders", requestContent);
-            // Check if the response is successfull
+            // Check if the response is successful
             if (response.IsSuccessStatusCode)
             {
                 // Read the response content as a JSON string
@@ -254,6 +302,12 @@ namespace Egost.Controllers
             // Check if the response is successful
             if (response.IsSuccessStatusCode)
             {
+                // Submit order to db
+                order.PaymobOrderId = id;
+                _db.Orders.Add(order);
+                _db.SaveChanges();
+
+
                 // Read the response content as a JSON string
                 var responseJson = await response.Content.ReadAsStringAsync();
 

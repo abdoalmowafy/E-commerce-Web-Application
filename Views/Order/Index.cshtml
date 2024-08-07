@@ -1,65 +1,108 @@
 ﻿@model IEnumerable<Order>
-@using System.IO
-
-
-<div class="container p-4">
-    <div class="row pt-4">
-        <div class="col-6">
-            <h2 class="text-primary">Index Cart Items</h2>
-        </div>
-        <div class="col-6 text-end">
-            <a class="btn btn-success" asp-controller="Manage" asp-action="Index">Add More Items &nbsp; <i class="bi bi-plus-circle"></i></a>
-        </div>
-    </div>
-    <div class="row pt-4">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Payment State</th>
-                    <th scope="col">Ordering Date</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Cancel</th>
+@{
+    ViewData["Title"] = "Order";
+}
+<div class="container mt-4">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Created Date</th>
+                <th>Total</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                string rowClass = order.DeletedDateTime != null ? "table-danger" :
+                order.DeliveryDateTime == null ? "table-warning" : "";
+                <tr class="@rowClass" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
+                    <td>@order.Id</td>
+                    <td>@order.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                    <td>@(order.TotalCents / 100.0) @order.Currency</td>
+                    <td>@order.PaymentMethod</td>
+                    <td>@(order.Processed ? "Processed" : "Pending")</td>
+                    <td>
+                        <a href="@Url.Action("Index", new { Id = order.Id })" class="btn btn-primary btn-sm">View</a>
+                        <form asp-action="Delete" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach(var data in Model)
-                {
-                    <tr>
-                        <td>@data.Id</td>
-                        <td>@(data.TotalCents * 0.01) @data.Currency</td>
-                        <td>
-                            
-                        </td>
-                        <td>@data.CreatedDateTime</td>
-                        <td>@data.DeletedDateTime</td>
-                        <td><a class="btn btn-danger" asp-controller="Order" asp-action="Cancel" asp-route-orderId=@data.Id><i class="bi bi-trash3"></i></a></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        @* @if (Model.Count > 0)
-        {
-            <form method="post" asp-controller="Cart" asp-action="ApplyPromoCode" asp-route-CartId=@ViewBag.Id>
-                <div class="row">
-                    <div class="col-2">
-                        <label class="col-form-label" for="inputDefault">PromoCode:</label>
-                    </div>
-                    <div class="col-7">
-                        <input type="text" name="PromoCode" class="form-control" value=@ViewBag.PromoCode>
-                    </div>
-                    <div class="col-3">
-                        <button type="submit" class="btn btn-info">Apply</button>
-                    </div>
-                </div>
-            </form>
-            <hr class="mx-auto mx-lg-0 my-5">
-            <a class="btn btn-primary" asp-controller="Order" asp-action="New">Purchase Cart Items &nbsp; <i class="bi bi-clipboard2-check"></i></a>
-        }
-        else
-        {
-            <p>Your Cart is Empty. Add Items to Purchase!</p>
-        } *@
-    </div>
+                <tr id="order-@order.Id" class="collapse">
+                    <td colspan="6">
+                        <div>
+                            <h5 class="text-primary">Order Products</h5>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Product</th>
+                                        <th>Price (Before Sale)</th>
+                                        <th>Sale Percent</th>
+                                        <th>Quantity</th>
+                                        <th>Total Price (Before Sale)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var orderProduct in order.OrderProducts)
+                                    {
+                                        var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+
+                                        var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
+                                        <tr>
+                                            <td>
+                                                <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
+                                                    <img src="~/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
+                                                </a>
+                                            </td>
+                                            <td>@orderProduct.Product.Name</td>
+                                            <td>@afterSalePrice (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
+                                            <td>@orderProduct.SalePercent %</td>
+                                            <td>@orderProduct.Quantity</td>
+                                            <td>@(afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                        </tr>
+                                    }
+                                    @if (order.PaymentMethod == "COD")
+                                    {
+                                        <tr>
+                                            <td>
+                                                <button type="button" class="btn btn-primary">
+                                                    <i class="bi bi-cash-coin"></i>
+                                                </button>
+                                            </td>
+                                            <td>Cash on Deleviry Fee:</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>+ 10 EGP</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><strong class="text-danger">PromoCode:</strong></td>
+                                        <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><strong class="text-success">Total Order:</strong></td>
+                                        <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>

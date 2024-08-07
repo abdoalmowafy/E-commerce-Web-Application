@@ -1,23 +1,9 @@
 ﻿using Egost.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Diagnostics.Metrics;
-using System.Diagnostics;
-using System.Drawing;
-using NuGet.Configuration;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
 using Egost.Data;
-using Microsoft.VisualBasic;
-using Microsoft.IdentityModel.Tokens;
-using Bdaya.Net.Paymob.Models.Orders;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Egost.Controllers
 {
@@ -25,6 +11,7 @@ namespace Egost.Controllers
     public class ManageController(EgostContext db) : Controller
     {
         private readonly EgostContext _db = db;
+        private IEnumerable<string> GetCategoriesNames() => _db.Categories.Select(c => c.Name);
 
 
 
@@ -32,6 +19,7 @@ namespace Egost.Controllers
         // GET
         public IActionResult NewProduct()
         {
+            ViewBag.Categories = GetCategoriesNames();
             return View();
         }
 
@@ -40,8 +28,6 @@ namespace Egost.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult NewProduct(Product obj)
         {
-            ViewBag.Categories = Product.Categories;
-
             if (ModelState.IsValid)
             {
                 // Add Product To Database before uploading media To Determine its Id
@@ -66,6 +52,7 @@ namespace Egost.Controllers
                 return RedirectToAction("Home", "Store");
             }
 
+            ViewBag.Categories = GetCategoriesNames();
             return View(obj);
         }
 
@@ -75,11 +62,6 @@ namespace Egost.Controllers
         // GET
         public IActionResult EditProduct(int? Id)
         {
-            if(Id == null || Id <= 0) 
-            {
-                TempData["fail"] = "Please Select Product To Edit!";
-                return RedirectToAction("Home", "Store");
-            }
             var OldProduct = _db.Products.Find(Id);
 
             // Check If Product Exists
@@ -95,6 +77,8 @@ namespace Egost.Controllers
             List<string> fileNamesOnly = fileNames.Select(filePath => Path.GetFileName(filePath)).ToList();
             
             ViewBag.FileNames = fileNamesOnly;
+            ViewBag.Categories = GetCategoriesNames();
+
             return View(OldProduct);
         }
 
@@ -130,6 +114,8 @@ namespace Egost.Controllers
                 TempData["success"] = "Product modified successfully!";
                 return RedirectToAction("Home", "Store");
             }
+
+            ViewBag.Categories = GetCategoriesNames();
             return View(obj);
         }
 
@@ -189,8 +175,8 @@ namespace Egost.Controllers
 
         public IActionResult IndexUndeliveredOrders()
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            IEnumerable<Order> orders = _db.Orders;
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
+            IEnumerable<Order> orders = _db.Orders.Include(o => o.User);
             if (!User.IsInRole("Transporter"))
                 orders = orders.Where(u => u.Transporter == user);
             
@@ -200,7 +186,10 @@ namespace Egost.Controllers
         public IActionResult ViewOrder(int id)
         {
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            Order order = _db.Orders.Find(id);
+            Order order = _db.Orders
+                .Include(o => o.Transporter)
+                .Include(o => o.OrderProducts)
+                .FirstOrDefault(o => o.Id == id)!;
             if (!User.IsInRole("Transporter") || order.Transporter == user)
             {
                 IEnumerable<OrderProduct> orderProducts = order.OrderProducts;
@@ -218,7 +207,7 @@ namespace Egost.Controllers
         public IActionResult DeliveredOrder(int? id)
         {
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            var order = _db.Orders.Find(id);
+            var order = _db.Orders.Include(o => o.Transporter).FirstOrDefault(o => o.Id == id);
             if (user == order.Transporter)
             {
                 order.DeliveryDateTime = DateTime.Now;
@@ -228,27 +217,35 @@ namespace Egost.Controllers
             }
             else
             {
-                TempData["success"] = "Invalid Transporter!";
+                TempData["info"] = "Invalid Transporter!";
             }
             return RedirectToAction("IndexOrders");
         }
         public IActionResult ChartView(int? ProductId)
         {
-            // Redirect to login if the user is not authenticated
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
-            }
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            IEnumerable<OrderProduct> orderProducts = _db.OrderProducts.Where(u => u.Product.Id == ProductId);
 
-            if (orderProducts == null)
+            IEnumerable<OrderProduct> orderProducts = _db.OrderProducts
+                .Include(op => op.Product)
+                .Where(op => op.Product.Id == ProductId);
+
+            IEnumerable<ReturnProduct> returnProducts = _db.ReturnProducts
+                .Include(rp => rp.OrderProduct)
+                    .ThenInclude(op => op.Product)
+                .Where(rp => rp.OrderProduct.Product.Id == ProductId);
+
+            return View((orderProducts, returnProducts));
+        }
+
+        public IActionResult MostSearchInLast(int year = 0, int month = 0, int day = 0, int hour = 0, int minute = 0)
+        {
+            var searches = _db.Searches;
+            if (year != 0 || month != 0 || day != 0 || hour != 0 || minute != 0)
             {
-                return RedirectToAction("Home", "Store");
+                DateTime untill = new(year, month, day, hour, minute, 0);
             }
-            var Data = new Dictionary<Product, int>();
-
-            return View(orderProducts);
+            var keyWords = searches.SelectMany(s => s.KeyWord.Split());
+            return View(keyWords);
         }
     }
 }

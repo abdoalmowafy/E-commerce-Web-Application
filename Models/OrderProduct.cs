@@ -10,6 +10,5 @@ namespace Egost.Models
         [Required][Range(0, 99)] public float SalePercent { get; set; }
         [Required] public uint Quantity { get; set; }
         [DataType(DataType.DateTime)] public DateTime? PartiallyOrFullyReturnedDateTime { get; set; }
-        public ICollection<EditHistory> EditsHistory { get; set; }
     }
 }

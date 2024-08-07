@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Egost.Migrations
 {
     /// <inheritdoc />
@@ -26,6 +28,19 @@ namespace Egost.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PromoCodes",
                 columns: table => new
                 {
@@ -33,7 +48,7 @@ namespace Egost.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Percent = table.Column<float>(type: "real", nullable: false),
+                    Percent = table.Column<int>(type: "int", nullable: false),
                     MaxSaleCents = table.Column<decimal>(type: "decimal(20,0)", nullable: true),
                     Active = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -66,6 +81,32 @@ namespace Egost.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    SKU = table.Column<long>(type: "bigint", nullable: false),
+                    PriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    SalePercent = table.Column<int>(type: "int", nullable: false),
+                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Carts",
                 columns: table => new
                 {
@@ -91,9 +132,8 @@ namespace Egost.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DOB = table.Column<DateOnly>(type: "date", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
-                    CartId = table.Column<int>(type: "int", nullable: true),
+                    CartId = table.Column<int>(type: "int", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -116,7 +156,34 @@ namespace Egost.Migrations
                         name: "FK_AspNetUsers_Carts_CartId",
                         column: x => x.CartId,
                         principalTable: "Carts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CartProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    CartId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CartProducts_Carts_CartId",
+                        column: x => x.CartId,
+                        principalTable: "Carts",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_CartProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -128,9 +195,10 @@ namespace Egost.Migrations
                     AddressLine1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AddressLine2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telephone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StoreAddress = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
@@ -231,98 +299,24 @@ namespace Egost.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "ProductUser",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SKU = table.Column<long>(type: "bigint", nullable: false),
-                    PriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    SalePercent = table.Column<float>(type: "real", nullable: false),
-                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    WishListId = table.Column<int>(type: "int", nullable: false),
+                    WishlistUsersId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_ProductUser", x => new { x.WishListId, x.WishlistUsersId });
                     table.ForeignKey(
-                        name: "FK_Products_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PromoCodeId = table.Column<int>(type: "int", nullable: false),
-                    TotalCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DeliveryNeeded = table.Column<bool>(type: "bit", nullable: false),
-                    AddressId = table.Column<int>(type: "int", nullable: false),
-                    TransporterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeliveryDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Orders_Addresses_AddressId",
-                        column: x => x.AddressId,
-                        principalTable: "Addresses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_TransporterId",
-                        column: x => x.TransporterId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_ProductUser_AspNetUsers_WishlistUsersId",
+                        column: x => x.WishlistUsersId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Orders_PromoCodes_PromoCodeId",
-                        column: x => x.PromoCodeId,
-                        principalTable: "PromoCodes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CartProducts",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
-                    CartId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CartProducts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CartProducts_Carts_CartId",
-                        column: x => x.CartId,
-                        principalTable: "Carts",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_CartProducts_Products_ProductId",
-                        column: x => x.ProductId,
+                        name: "FK_ProductUser_Products_WishListId",
+                        column: x => x.WishListId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -358,6 +352,130 @@ namespace Egost.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TransporterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    PromoCodeId = table.Column<int>(type: "int", nullable: true),
+                    TotalCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeliveryNeeded = table.Column<bool>(type: "bit", nullable: false),
+                    Processed = table.Column<bool>(type: "bit", nullable: false),
+                    PaymobOrderId = table.Column<int>(type: "int", nullable: true),
+                    AddressId = table.Column<int>(type: "int", nullable: false),
+                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DeliveryDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Addresses_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Addresses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_AspNetUsers_TransporterId",
+                        column: x => x.TransporterId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_PromoCodes_PromoCodeId",
+                        column: x => x.PromoCodeId,
+                        principalTable: "PromoCodes",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EditHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EditorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Field = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OldData = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NewData = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EditDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AddressId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
+                    PromoCodeId = table.Column<int>(type: "int", nullable: true),
+                    ReviewId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EditHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EditHistories_Addresses_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Addresses",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_EditHistories_AspNetUsers_EditorId",
+                        column: x => x.EditorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EditHistories_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_EditHistories_PromoCodes_PromoCodeId",
+                        column: x => x.PromoCodeId,
+                        principalTable: "PromoCodes",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_EditHistories_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ProductPriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    SalePercent = table.Column<float>(type: "real", nullable: false),
+                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    PartiallyOrFullyReturnedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    OrderId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderProducts_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ReturnOrders",
                 columns: table => new
                 {
@@ -384,6 +502,7 @@ namespace Egost.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<long>(type: "bigint", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -393,98 +512,49 @@ namespace Egost.Migrations
                 {
                     table.PrimaryKey("PK_ReturnProducts", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_ReturnProducts_OrderProducts_OrderProductId",
+                        column: x => x.OrderProductId,
+                        principalTable: "OrderProducts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_ReturnProducts_ReturnOrders_ReturnOrderId",
                         column: x => x.ReturnOrderId,
                         principalTable: "ReturnOrders",
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "OrderProducts",
-                columns: table => new
+            migrationBuilder.InsertData(
+                table: "Addresses",
+                columns: new[] { "Id", "AddressLine1", "AddressLine2", "City", "Country", "CreatedDateTime", "DeletedDateTime", "PostalCode", "StoreAddress", "Telephone", "UserId" },
+                values: new object[] { 1, "Base", "", "Base", "Base", new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1181), null, "Base", true, "Base", null });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    ProductPriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    SalePercent = table.Column<float>(type: "real", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
-                    PartiallyOrFullyReturnedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    OrderId = table.Column<int>(type: "int", nullable: true),
-                    ReturnProductId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderProducts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OrderProducts_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_OrderProducts_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderProducts_ReturnProducts_ReturnProductId",
-                        column: x => x.ReturnProductId,
-                        principalTable: "ReturnProducts",
-                        principalColumn: "Id");
+                    { 1, "Sports, Instruments & Accessories" },
+                    { 2, "Toys, Games, Video Games & Accessories" },
+                    { 3, "Arts, Crafts & Sewing" },
+                    { 4, "Clothing, Shoes & Jewelry" },
+                    { 5, "Beauty & Personal Care" },
+                    { 6, "Books" },
+                    { 7, "Electronics & Accessories" },
+                    { 8, "Software" },
+                    { 9, "Grocery & Gourmet Food" },
+                    { 10, "Home Furniture & Accessories" },
+                    { 11, "Luggage & Travel Gear" },
+                    { 12, "Pet Supplies" }
                 });
 
-            migrationBuilder.CreateTable(
-                name: "EditHistories",
-                columns: table => new
+            migrationBuilder.InsertData(
+                table: "Products",
+                columns: new[] { "Id", "CategoryId", "CreatedDateTime", "DeletedDateTime", "Description", "Name", "PriceCents", "SKU", "SalePercent" },
+                values: new object[,]
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EditorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Field = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OldData = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NewData = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EditDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AddressId = table.Column<int>(type: "int", nullable: true),
-                    OrderId = table.Column<int>(type: "int", nullable: true),
-                    OrderProductId = table.Column<int>(type: "int", nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: true),
-                    ReviewId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EditHistories", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EditHistories_Addresses_AddressId",
-                        column: x => x.AddressId,
-                        principalTable: "Addresses",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_EditHistories_AspNetUsers_EditorId",
-                        column: x => x.EditorId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EditHistories_OrderProducts_OrderProductId",
-                        column: x => x.OrderProductId,
-                        principalTable: "OrderProducts",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_EditHistories_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_EditHistories_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_EditHistories_Reviews_ReviewId",
-                        column: x => x.ReviewId,
-                        principalTable: "Reviews",
-                        principalColumn: "Id");
+                    { 1, 1, new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1159), null, "Basket Ball\nBasket Ball\nBasket Ball", "Basket Ball", 50000m, 50L, 0 },
+                    { 2, 1, new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1163), null, "Basket Ball Sale 10%\nBasket Ball Sale 10%\nBasket Ball Sale 10%", "Basket Ball Sale 10%", 50000m, 50L, 10 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -562,19 +632,14 @@ namespace Egost.Migrations
                 column: "EditorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EditHistories_OrderId",
-                table: "EditHistories",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EditHistories_OrderProductId",
-                table: "EditHistories",
-                column: "OrderProductId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_EditHistories_ProductId",
                 table: "EditHistories",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EditHistories_PromoCodeId",
+                table: "EditHistories",
+                column: "PromoCodeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EditHistories_ReviewId",
@@ -590,11 +655,6 @@ namespace Egost.Migrations
                 name: "IX_OrderProducts_ProductId",
                 table: "OrderProducts",
                 column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderProducts_ReturnProductId",
-                table: "OrderProducts",
-                column: "ReturnProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_AddressId",
@@ -617,14 +677,24 @@ namespace Egost.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_UserId",
+                name: "IX_Products_CategoryId",
                 table: "Products",
-                column: "UserId");
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductUser_WishlistUsersId",
+                table: "ProductUser",
+                column: "WishlistUsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReturnOrders_OrderId",
                 table: "ReturnOrders",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReturnProducts_OrderProductId",
+                table: "ReturnProducts",
+                column: "OrderProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReturnProducts_ReturnOrderId",
@@ -667,25 +737,31 @@ namespace Egost.Migrations
                 name: "EditHistories");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "OrderProducts");
-
-            migrationBuilder.DropTable(
-                name: "Reviews");
+                name: "ProductUser");
 
             migrationBuilder.DropTable(
                 name: "ReturnProducts");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
+
+            migrationBuilder.DropTable(
+                name: "OrderProducts");
 
             migrationBuilder.DropTable(
                 name: "ReturnOrders");
 
             migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Addresses");

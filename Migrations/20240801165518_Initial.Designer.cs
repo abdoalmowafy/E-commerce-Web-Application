@@ -4,6 +4,7 @@ using Egost.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Egost.Migrations
 {
     [DbContext(typeof(EgostContext))]
-    partial class EgostContextModelSnapshot : ModelSnapshot
+    [Migration("20240801165518_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,7 +167,7 @@ namespace Egost.Migrations
                             AddressLine2 = "",
                             City = "Base",
                             Country = "Base",
-                            CreatedDateTime = new DateTime(2024, 8, 4, 16, 7, 44, 220, DateTimeKind.Local).AddTicks(9987),
+                            CreatedDateTime = new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1181),
                             PostalCode = "Base",
                             StoreAddress = true,
                             Telephone = "Base"
@@ -491,7 +494,7 @@ namespace Egost.Migrations
                         {
                             Id = 1,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 4, 16, 7, 44, 220, DateTimeKind.Local).AddTicks(9953),
+                            CreatedDateTime = new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1159),
                             Description = "Basket Ball\nBasket Ball\nBasket Ball",
                             Name = "Basket Ball",
                             PriceCents = 50000m,
@@ -502,7 +505,7 @@ namespace Egost.Migrations
                         {
                             Id = 2,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 4, 16, 7, 44, 220, DateTimeKind.Local).AddTicks(9959),
+                            CreatedDateTime = new DateTime(2024, 8, 1, 19, 55, 18, 7, DateTimeKind.Local).AddTicks(1163),
                             Description = "Basket Ball Sale 10%\nBasket Ball Sale 10%\nBasket Ball Sale 10%",
                             Name = "Basket Ball Sale 10%",
                             PriceCents = 50000m,
@@ -638,33 +641,6 @@ namespace Egost.Migrations
                     b.HasIndex("ReviewerId");
 
                     b.ToTable("Reviews");
-                });
-
-            modelBuilder.Entity("Egost.Models.Search", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("KeyWord")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Searches");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -985,21 +961,6 @@ namespace Egost.Migrations
                         .IsRequired();
 
                     b.Navigation("Reviewer");
-                });
-
-            modelBuilder.Entity("Egost.Models.Search", b =>
-                {
-                    b.HasOne("Egost.Models.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId");
-
-                    b.HasOne("Egost.Areas.Identity.Data.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Category");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

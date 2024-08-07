@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Egost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21185fa299594b56bcbe7ace61c48108d97f3768")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ddde684c28024e2c403cc4658b98f39ceee0ea1")]
 [assembly: System.Reflection.AssemblyProductAttribute("Egost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Egost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -117,5 +117,13 @@ static async Task SeedSuperUserAsync(UserManager<User> userManager, IConfigurati
         {
             await userManager.AddToRoleAsync(superUser, "Admin");
         }
+        else
+        {
+            // Log the errors
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"Error: {error.Description}");
+            }
+        }
     }
 }
