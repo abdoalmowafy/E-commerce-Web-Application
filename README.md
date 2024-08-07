@@ -59,10 +59,6 @@ This project is a comprehensive web store application built with ASP.NET Core (M
     ```bash
     dotnet run
     ```
-## Configuration
-
-- **External Logins**: Configure the Facebook, Google, and Microsoft authentication settings in `appsettings.json`.
-- **Payment Gateway**: Set up the Paymob gateway by providing the necessary API keys and configuration settings in `appsettings.json`.
 
 ## Usage
 
