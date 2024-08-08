@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.IdentityModel.Tokens;
 using System.Drawing;
 
 namespace Egost.Data;
@@ -46,10 +47,12 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
         foreach (var entry in DeletedUserEntries)
         {
             var user = entry.Entity;
-            var UserOrders = Orders.Where(o => o.User == user);
+
+            var UserOrders = user.Orders;
             foreach (var order in UserOrders)
             {
-                if ( order.DeletedDateTime == null && order.DeliveryDateTime == null)
+                if ( order.DeletedDateTime == null && order.DeliveryDateTime == null 
+                    && (order.PaymentMethod == "COD" || !order.Processed))
                 {
                     foreach (var orderProduct in order.OrderProducts)
                     {
@@ -61,11 +64,26 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 order.User = null;
                 Orders.Update(order);
             }
+
             var UserEdits = user.EditsHistory;
-            foreach (var edit in UserEdits)
+            if (UserEdits != null)
             {
-                EditHistories.Remove(edit);
+                foreach (var edit in UserEdits)
+                {
+                    EditHistories.Remove(edit);
+                }
             }
+
+            var cart = user.Cart;
+            var cartProducts = cart.CartProducts;
+            if (cartProducts != null)
+            {
+                foreach (var cp in cartProducts)
+                {
+                    CartProducts.Remove(cp);
+                }
+            }
+            Carts.Remove(cart);
         }
         return await base.SaveChangesAsync(cancellationToken);
     }

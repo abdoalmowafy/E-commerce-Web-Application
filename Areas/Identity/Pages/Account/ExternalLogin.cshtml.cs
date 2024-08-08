@@ -126,16 +126,43 @@ namespace Egost.Areas.Identity.Pages.Account
             else
             {
                 // If the user does not have an account, then ask the user to create an account.
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
-                if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+                
+                var user = new User
                 {
-                    Input = new InputModel
-                    {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                    };
+                    UserName = email,
+                    Email = email,
+                    Name = info.Principal.FindFirstValue(ClaimTypes.Name),
+                    Gender = info.Principal.FindFirstValue(ClaimTypes.Gender),
+                    EmailConfirmed = true // Automatically confirm the email
+                };
+
+                var dobClaim = info.Principal.FindFirstValue(ClaimTypes.DateOfBirth);
+                if (DateOnly.TryParse(dobClaim, out var dob))
+                {
+                    user.DOB = dob;
                 }
-                return Page();
+
+                var createUserResult = await _userManager.CreateAsync(user);
+                if (createUserResult.Succeeded)
+                {
+                    createUserResult = await _userManager.AddLoginAsync(user, info);
+                    if (createUserResult.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                        return LocalRedirect(returnUrl);
+                    }
+                }
+
+                foreach (var error in createUserResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                // If account creation failed, return to login page
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
         }
 

@@ -2,3 +2,4 @@
 .vs/
 .env
 bin/
+obj/

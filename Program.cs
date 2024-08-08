@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Egost.Data;
 using Egost.Areas.Identity.Data;
 using DotNetEnv;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args); 
@@ -27,25 +28,102 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication()
-   .AddGoogle(options =>
-   {
-       IConfigurationSection googleAuthNSection =
-       config.GetSection("Authentication:Google");
-       options.ClientId = googleAuthNSection["ClientId"]!;
-       options.ClientSecret = googleAuthNSection["ClientSecret"]!;
-   })
-   .AddFacebook(options =>
-   {
-       IConfigurationSection FBAuthNSection =
-       config.GetSection("Authentication:Facebook");
-       options.AppId = FBAuthNSection["AppId"]!;
-       options.AppSecret = FBAuthNSection["AppSecret"]!;
-   })
-   .AddMicrosoftAccount(microsoftOptions =>
-   {
-       microsoftOptions.ClientId = config["Authentication:Microsoft:ClientId"]!;
-       microsoftOptions.ClientSecret = config["Authentication:Microsoft:ClientSecret"]!;
-   });
+    .AddGoogle(options =>
+    {
+        IConfigurationSection googleAuthNSection = config.GetSection("Authentication:Google");
+        options.ClientId = googleAuthNSection["ClientId"]!;
+        options.ClientSecret = googleAuthNSection["ClientSecret"]!;
+        options.Events.OnCreatingTicket = ctx =>
+        {
+            var identity = ctx.Principal!.Identity as ClaimsIdentity;
+            var name = ctx.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var dob = ctx.Principal.FindFirst(ClaimTypes.DateOfBirth)?.Value; // DOB may not be available
+            var gender = ctx.Principal.FindFirst(ClaimTypes.Gender)?.Value; // Gender may not be available
+
+            if (identity != null)
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    identity.AddClaim(new Claim("Name", name));
+                }
+                if (!string.IsNullOrEmpty(dob))
+                {
+                    identity.AddClaim(new Claim("DOB", dob));
+                }
+                if (!string.IsNullOrEmpty(gender))
+                {
+                    identity.AddClaim(new Claim("Gender", gender));
+                }
+            }
+
+            return Task.CompletedTask;
+        };
+    })
+    .AddFacebook(options =>
+    {
+        IConfigurationSection FBAuthNSection = config.GetSection("Authentication:Facebook");
+        options.AppId = FBAuthNSection["AppId"]!;
+        options.AppSecret = FBAuthNSection["AppSecret"]!;
+        options.Fields.Add("birthday"); // To request DOB (date of birth)
+        options.Fields.Add("gender");   // To request Gender
+
+        options.Events.OnCreatingTicket = ctx =>
+        {
+            var identity = ctx.Principal!.Identity as ClaimsIdentity;
+            var name = ctx.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var dob = ctx.Principal.FindFirst("birthday")?.Value; // Facebook-specific claim
+            var gender = ctx.Principal.FindFirst("gender")?.Value; // Facebook-specific claim
+
+            if (identity != null)
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    identity.AddClaim(new Claim("Name", name));
+                }
+                if (!string.IsNullOrEmpty(dob))
+                {
+                    identity.AddClaim(new Claim("DOB", dob));
+                }
+                if (!string.IsNullOrEmpty(gender))
+                {
+                    identity.AddClaim(new Claim("Gender", gender));
+                }
+            }
+
+            return Task.CompletedTask;
+        };
+    })
+    .AddMicrosoftAccount(microsoftOptions =>
+    {
+        microsoftOptions.ClientId = config["Authentication:Microsoft:ClientId"]!;
+        microsoftOptions.ClientSecret = config["Authentication:Microsoft:ClientSecret"]!;
+        microsoftOptions.Events.OnCreatingTicket = ctx =>
+        {
+            var identity = ctx.Principal!.Identity as ClaimsIdentity;
+            var name = ctx.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var dob = ctx.Principal.FindFirst(ClaimTypes.DateOfBirth)?.Value; // DOB may not be available
+            var gender = ctx.Principal.FindFirst(ClaimTypes.Gender)?.Value; // Gender may not be available
+
+            if (identity != null)
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    identity.AddClaim(new Claim("Name", name));
+                }
+                if (!string.IsNullOrEmpty(dob))
+                {
+                    identity.AddClaim(new Claim("DOB", dob));
+                }
+                if (!string.IsNullOrEmpty(gender))
+                {
+                    identity.AddClaim(new Claim("Gender", gender));
+                }
+            }
+
+            return Task.CompletedTask;
+        };
+    });
+
 
 
 var app = builder.Build();
