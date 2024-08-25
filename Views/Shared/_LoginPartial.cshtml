@@ -5,13 +5,72 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
-    <a id="manage" class="btn btn-light text-dark me-2" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserAsync(User).Result!.Name</a>
-    <form id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Home", "Store", new { area = "" })">
-        <button id="logout" type="submit" class="btn btn-primary">Logout</button>
-    </form>
+    Egost.Areas.Identity.Data.User user = UserManager.GetUserAsync(User).Result!;
+    <li class="nav-item dropdown">
+        <a asp-area="" class="nav-link text-white dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Hello!
+            @UserManager.GetUserAsync(User).Result!.Name.Split().First() <br />
+            <text class="text-secondary">My Account</text>
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" asp-area="" asp-controller="Store" asp-action="IndexWishlist">
+                <i class="bi bi-bag-heart-fill text-dark" width="24" height="24"></i> &ensp; My Wishlist
+            </a>
+            <a class="dropdown-item" asp-area="" asp-controller="Order" asp-action="Index">
+                <i class="bi bi-truck-front-fill text-dark" width="24" height="24"></i> &ensp; My Orders
+            </a>
+            <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                <i class="bi bi-file-earmark-person-fill text-dark" width="24" height="24"></i> &ensp; Settings
+            </a>
+            <a class="dropdown-item" asp-area="" asp-controller="Contact" asp-action="Index">
+                <i class="bi bi-info-circle-fill text-dark" width="24" height="24"></i> &ensp; Contact Us
+            </a>
+            <div class="dropdown-divider"></div>
+            <form id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Home", "Store", new { area = "" })">
+                <button id="logout" type="submit" class="dropdown-item">
+                    <i class="bi bi-arrow-left-square-fill text-dark" width="24" height="24"></i> &ensp; Logout
+                </button>
+            </form>
+        </div>
+    </li>
+
+    @if (await UserManager.IsInRoleAsync(user, "Admin") || await UserManager.IsInRoleAsync(user, "Moderator"))
+    {
+        <li class="nav-item dropdown">
+            <a asp-area="" class="nav-link text-white dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                AdminPanel <br />
+                <i class="bi bi-gear"></i>
+            </a>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" asp-area="" asp-controller="Manage" asp-action="NewProduct">
+                    <i class="bi bi-plus-circle text-dark" width="24" height="24"></i> &ensp; New Product
+                </a>
+                <a class="dropdown-item" asp-area="" asp-controller="Manage" asp-action="IndexAllOrders">
+                    <i class="bi bi-list text-dark" width="24" height="24"></i> &ensp; IndexAllOrders
+                </a>
+            </div>
+        </li>
+    }
+    else if (await UserManager.IsInRoleAsync(user, "Admin") || await UserManager.IsInRoleAsync(user, "Moderator"))
+    {
+        <li class="nav-item dropdown">
+            <a asp-area="" class="nav-link text-white dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                AdminPanel <br />
+                <i class="bi bi-gear"></i>
+            </a>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" asp-area="" asp-controller="Manage" asp-action="IndexAllOrders">
+                    <i class="bi bi-list text-dark" width="24" height="24"></i> &ensp; IndexAllOrders
+                </a>
+            </div>
+        </li>
+    }
 }
 else
 {
-    <a class="btn btn-light text-dark me-2" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    <a class="btn btn-primary" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    <li>
+        <a asp-area="Identity" asp-page="/Account/Login" class="nav-link text-white">
+            Login <i class="bi bi-person-add d-block"></i>
+        </a>
+    </li>
 }

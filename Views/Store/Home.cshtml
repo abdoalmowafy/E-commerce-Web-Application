@@ -1,45 +1,123 @@
-﻿@model IEnumerable<Product>
-@using System.IO
+﻿@model (IEnumerable<Product> orderedByMostOrders, IEnumerable<Product> productsOnSale, IEnumerable<Product> productsAddedLastWeek)
 @{
-    ViewData["Title"] = "Home";
+    ViewBag.Title = "Egost - Home";
+    var categories = ViewBag.CategoriesNames as IEnumerable<string>;
 }
 
-
-<div class="container p-4">
-    <div class="row pt-4">
-        <div class="col-6">
-            <h2 class="text-primary">Index Products</h2>
+<div class="container my-5">
+    <!-- Categories Swiper -->
+    <div class="row mb-4">
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                @foreach (var category in categories!)
+                {
+                    <a asp-area="" asp-controller="Store" asp-action="Search" asp-route-categoryName=@category class="swiper-slide text-center text-decoration-none">
+                        <div class="category-circle mx-auto">
+                            <img src="~/Media/Categories/@(category).jpg" class="img-fluid rounded-circle" alt="@category" />
+                        </div>
+                        <strong class="text-black">@category</strong>
+                    </a>
+                }
+            </div>
+            <div class="swiper-button-next text-dark"></div>
+            <div class="swiper-button-prev text-dark"></div>
         </div>
     </div>
-    <div class="row pt-4">
-        @foreach (var data in Model)
-        {
-            var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{data.Id}")[0]);
-            <div class="col-lg-4">
-                <div class="card mb-3">
-                    <a class="text-decoration-none" asp-controller="Store" asp-action="FullView" asp-route-id="@data.Id">
-                        <img src="~/ProductMedia/@data.Id/@MainImg" style="width:100%; height:400px">
-                        @if (data.SalePercent > 0)
-                        {
-                            <span class="badge bg-info position-absolute" style="top:10px;right:10px">@(data.SalePercent)% OFF</span>
-                        }
-                        <ul class="list-group list-group-flush list">
-                            <li class="list-group-item border-0 text-body-secondary"><h6>@data.Category.Name</h6></li>
-                            <li class="list-group-item border-0"><h4>@data.Name</h4></li>
-                            @if (data.SalePercent > 0)
-                            {
-                                <li class="list-group-item border-0">
-                                    <text class="fs-3">@(data.PriceCents * Convert.ToByte(100 - data.SalePercent) / 10000.0) EGP &nbsp; <small class="text-danger fs-6 text-decoration-line-through">@(data.PriceCents / 100.0) EPG</small></text>
-                                </li>
-                            }
-                            else
-                            {
-                                <li class="list-group-item border-0"><h3>@(data.PriceCents / 100.0) EGP</h3></li>
-                            }
-                        </ul>
+
+    <!-- Most Ordered Products Swiper -->
+    <div class="row mb-4">
+        <h2 class="mb-3">Most Ordered Products</h2>
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                @foreach (var product in Model.orderedByMostOrders)
+                {
+                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{product.Id}")[0]);
+                    <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id class="swiper-slide text-decoration-none">
+                        <div class="card">
+                            <img src="~/Media/ProductMedia/@product.Id/@MainImg" class="card-img-top" alt="@product.Name" />
+                            <div class="card-body">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text">
+                                    <span>@($"{product.PriceCents * (1 - product.SalePercent / 100.0) / 100.0:F2}") EGP</span>
+                                    @if (product.SalePercent > 0)
+                                    {
+                                        <span class="text-muted"><del>@(product.PriceCents / 100.0) EGP</del></span>
+                                        <span class="badge bg-success">@product.SalePercent% OFF</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
                     </a>
-                </div>
+                }
             </div>
-        }
+            <div class="swiper-button-next text-dark"></div>
+            <div class="swiper-button-prev text-dark"></div>
+        </div>
     </div>
-</div>
+
+    <!-- On Sale Products Swiper -->
+    <div class="row mb-4">
+        <h2 class="mb-3">On Sale Products</h2>
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                @foreach (var product in Model.productsOnSale)
+                {
+                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{product.Id}")[0]);
+                    <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id class="swiper-slide text-decoration-none">
+                        <div class="card">
+                            <img src="~/Media/ProductMedia/@product.Id/@MainImg" class="card-img-top" alt="@product.Name" />
+                            <div class="card-body">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text">
+                                    <span>@($"{product.PriceCents * (1 - product.SalePercent / 100.0) / 100.0:F2}") EGP</span>
+                                    @if (product.SalePercent > 0)
+                                    {
+                                        <span class="text-muted"><del>@(product.PriceCents/100.0) EGP</del></span>
+                                        <span class="badge bg-success">@product.SalePercent% OFF</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+            <div class="swiper-button-next text-dark"></div>
+            <div class="swiper-button-prev text-dark"></div>
+        </div>
+    </div>
+
+    <!-- Newly Added Products Swiper -->
+    <div class="row mb-4">
+        <h2 class="mb-3">New Arrivals</h2>
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                @foreach (var product in Model.productsAddedLastWeek)
+                {
+                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{product.Id}")[0]);
+                    <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id class="swiper-slide text-decoration-none">
+                        <div class="card">
+                            <img src="~/Media/ProductMedia/@product.Id/@MainImg" class="card-img-top" alt="@product.Name" />
+                            <div class="card-body">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text">
+                                    <span>@($"{product.PriceCents * (1 - product.SalePercent / 100.0) / 100.0:F2}") EGP</span>
+                                    @if (product.SalePercent > 0)
+                                    {
+                                        <span class="text-muted"><del>@(product.PriceCents / 100.0) EGP</del></span>
+                                        <span class="badge bg-success">@product.SalePercent% OFF</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+            <div class="swiper-button-next text-dark"></div>
+            <div class="swiper-button-prev text-dark"></div>
+        </div>
+    </div>
+</div> 
+
+@section Scripts {
+    <script src="~/js/Home.js"></script>
+}

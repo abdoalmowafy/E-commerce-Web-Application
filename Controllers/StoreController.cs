@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 
 namespace Egost.Controllers
 {
@@ -16,10 +17,28 @@ namespace Egost.Controllers
 
         public IActionResult Home()
         {
-            // Most Ordered , Sale , Categories , ....
-            IEnumerable<Product> NonDeletedProducts = _db.Products
-                .Include(p => p.Category).Where(p => p.DeletedDateTime == null);
-            return View(NonDeletedProducts);
+            IEnumerable<OrderProduct> OrderedProducts = _db.OrderProducts.Include(op => op.Product);
+            IEnumerable<Product> NonDeletedAvailableProducts = _db.Products
+                .Include(p => p.Category).Where(p => p.DeletedDateTime == null && p.SKU > 0);
+
+            IDictionary<Product,int> freq = new Dictionary<Product,int>();
+            foreach (var product in NonDeletedAvailableProducts) freq.Add(product,0);
+            foreach (var op in OrderedProducts) 
+            {
+                var product = op.Product;
+                if (product.DeletedDateTime == null && product.SKU > 0)
+                {
+                    freq.TryAdd(product, 0);
+                    freq[product]++;
+                }
+            }
+
+            IEnumerable<Product> orderedByMostOrderes = NonDeletedAvailableProducts.OrderByDescending(p => freq[p]);
+            IEnumerable<Product> productsOnSale = orderedByMostOrderes.Where(p => p.SalePercent > 0);
+            IEnumerable<Product> productsAddedLastWeek = NonDeletedAvailableProducts.OrderByDescending(p => DateTime.Now - p.CreatedDateTime);
+            ViewBag.CategoriesNames = GetCategoriesNames();
+            
+            return View((orderedByMostOrderes,productsOnSale,productsAddedLastWeek));
         }
 
         public IActionResult Search(string keyWord, string categoryName = "All", bool includeOutOfStock = false, bool includeDeleted = false)
@@ -73,13 +92,16 @@ namespace Egost.Controllers
             }
 
             // Add Search to db
-            _db.Searches.Add(new()
+            if (keyWord != null)
             {
-                User = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name),
-                Category = category,
-                KeyWord = keyWord
-            });
-            _db.SaveChanges();
+                _db.Searches.Add(new()
+                {
+                    User = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name),
+                    Category = category,
+                    KeyWord = keyWord
+                });
+                _db.SaveChanges();
+            }
 
             TempData["Categories"] = GetCategoriesNames();
             TempData["KeyWord"] = keyWord;
@@ -104,7 +126,7 @@ namespace Egost.Controllers
                 TempData["fail"] = "Product not found!";
                 return Redirect("/");
             }
-            string path = Path.Combine(@"wwwroot\ProductMedia\", Product.Id.ToString());
+            string path = Path.Combine("wwwroot\\Media\\ProductMedia\\", Product.Id.ToString());
             string[] fileNames = Directory.GetFiles(path);
             List<string> fileNamesOnly = fileNames.Select(filePath => Path.GetFileName(filePath)).ToList();
             ViewBag.FileNames = fileNamesOnly;

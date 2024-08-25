@@ -36,11 +36,11 @@
             <tbody>
                 @foreach (var data in Model)
                 {
-                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{data.Product.Id}")[0]);
+                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{data.Product.Id}")[0]);
                     ulong totalProductCents = data.Product.PriceCents * data.Quantity * Convert.ToByte(100 - data.Product.SalePercent) / 100;
                     totalOrderCents += totalProductCents;
                     <tr>
-                        <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id><img width="100px" src="~/ProductMedia/@data.Product.Id/@MainImg"></a></td>
+                        <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id><img width="100px" src="~/Media/ProductMedia/@data.Product.Id/@MainImg"></a></td>
                         <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id class="text-decoration-none text-body">@data.Product.Name</a></td>
                         <td>
                             <div class="d-flex">
@@ -73,8 +73,8 @@
                         @if (data.Product.SalePercent > 0)
                         {
                             <td>
-                                <p><strong>@(totalProductCents/100.0) EGP</strong> (@(data.Product.PriceCents * Convert.ToByte(100 - data.Product.SalePercent) / 10000.0) EGP Each)  &nbsp; <span class="badge bg-success">@(data.Product.SalePercent)% OFF</span></p>
-                                <p class="text-danger text-decoration-line-through"><strong>@(data.Product.PriceCents * data.Quantity / 100.0) EGP</strong> (@(data.Product.PriceCents / 100.0) EGP Each) </p>
+                                <p><strong>@(totalProductCents / 100.0) EGP</strong> (@string.Format("{0:F2}", data.Product.PriceCents * Convert.ToByte(100 - data.Product.SalePercent) / 10000.0) EGP Each)  &nbsp; <span class="badge bg-success">@(data.Product.SalePercent)% OFF</span></p>
+                                <del class="text-muted">@(data.Product.PriceCents * data.Quantity / 100.0) EGP (@(data.Product.PriceCents / 100.0) EGP Each) </del>
                             </td>
                         }
                         else

@@ -78,16 +78,16 @@
             <div class="list-group">
                 @foreach (var product in Model)
                 {
-                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{product.Id}")[0]);
+                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{product.Id}")[0]);
 
                     <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id class="list-group-item list-group-item-action mb-3">
                         <div class="d-flex align-items-start">
-                            <img src="~/ProductMedia/@product.Id/@MainImg" class="img-thumbnail me-3" alt="@product.Name" style="width: 100px; height: 100px;">
+                            <img src="~/Media/ProductMedia/@product.Id/@MainImg" class="img-thumbnail me-3" alt="@product.Name" style="width: 100px; height: 100px;">
                             <div class="flex-grow-1 ms-3">
                                 <h5 class="mb-1">@product.Name</h5>
                                 <small class="text-muted">@product.Category.Name</small>
                                 <div>
-                                    <strong>Price:</strong> @(product.PriceCents * Convert.ToByte(100 - @product.SalePercent) / 10000.0) EGP   <strong class="text-decoration-line-through text-danger">@(product.SalePercent > 0 ? $"({product.PriceCents / 100.0} EGP)" : "")</strong>
+                                    <strong>Price:</strong> @(product.PriceCents * Convert.ToByte(100 - @product.SalePercent) / 10000.0) EGP   <del class="text-muted">@(product.SalePercent > 0 ? $"({product.PriceCents / 100.0} EGP)" : "")</del>
                                 </div>
                             </div>
                         </div>

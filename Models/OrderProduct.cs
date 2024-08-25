@@ -9,6 +9,7 @@ namespace Egost.Models
         [Required][DataType(DataType.Currency)] public ulong ProductPriceCents { get; set; }
         [Required][Range(0, 99)] public float SalePercent { get; set; }
         [Required] public uint Quantity { get; set; }
+        [Required] public TimeSpan Warranty { get; set; }
         [DataType(DataType.DateTime)] public DateTime? PartiallyOrFullyReturnedDateTime { get; set; }
     }
 }

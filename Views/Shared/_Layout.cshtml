@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Egost</title>
-    @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
+    <link rel="stylesheet" href="https://unpkg.com/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="~/css/bootstrap.united.min.css" />
     <link rel="stylesheet" href="~/css/bootstrap-icons-1.10.5/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -16,55 +16,20 @@
             <div class="container">
                 <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
                     <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
-                        @*<svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>*@
-                        Egost
+                        <img src="~/Egost Logo.jpg" width="180px"/>
                     </a>
-
+                    <form method="get" class="d-flex flex-grow-1 mx-5" role="search" asp-area="" asp-controller="Store" asp-action="Search">
+                        <input type="search" name="KeyWord" class="form-control" placeholder="Search..." aria-label="Search">
+                    </form>
                     <ul class="nav col-12 col-lg-auto my-2 justify-content-center text-center my-md-0 text-small">
                         <li>
-                            <a href="/" class="nav-link text-secondary">
-                                <i class="bi bi-house-door d-block mx-auto mb-1" width="24" height="24"></i>
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-area="" asp-controller="Store" asp-action="IndexWishlist" class="nav-link text-white">
-                                <i class="bi bi-bag-heart d-block mx-auto mb-1" width="24" height="24"></i>
-                                Wishlist
-                            </a>
-                        </li>
-                        <li>
                             <a asp-area="" asp-controller="Cart" asp-action="Index" class="nav-link text-white">
-                                <i class="bi bi-cart3 d-block mx-auto mb-1" width="24" height="24"></i>
                                 Cart
+                                <i class="bi bi-cart3 d-block mx-auto mb-1" width="24" height="24"></i>
                             </a>
                         </li>
-                        <li>
-                            <a asp-area="" asp-controller="Order" asp-action="Index" class="nav-link text-white">
-                                <i class="bi bi-truck d-block mx-auto mb-1" width="24" height="24"></i>
-                                Orders
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-area="" asp-controller="Contact" asp-action="Index" class="nav-link text-white">
-                                <i class="bi bi-info-circle d-block mx-auto mb-1" width="24" height="24"></i>
-                                Contact Us
-                            </a>
-                        </li>
+                        <partial name="_LoginPartial" />
                     </ul>
-                </div>
-            </div>
-        </div>
-        <div class="px-3 py-2 border-bottom mb-3">
-            <div class="container d-flex flex-wrap justify-content-center">
-                <form method="get" class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto" role="search" asp-area="" asp-controller="Store" asp-action="Search">
-                    <input type="search" name="KeyWord" class="form-control" placeholder="Search..." aria-label="Search">
-                </form>
-                <div class="text-center d-flex">
-                    <partial name="_ManagePartial" />
-                </div>
-                <div class="text-end d-flex">
-                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </div>
@@ -81,9 +46,10 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2023 - Egost - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; @DateTime.Now.Year - Egost - Abdelrahman Almowafy
         </div>
     </footer>
+    <script src="https://unpkg.com/swiper@11/swiper-bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

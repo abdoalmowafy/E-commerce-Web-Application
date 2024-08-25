@@ -48,12 +48,12 @@ namespace Egost.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ModifyProducts(int ProductId, uint count = 1)
+        public IActionResult ModifyProducts(int ProductId, uint Count = 1)
         {
             var product = _db.Products.Find(ProductId);
             
             // Redirect to Product Index if ProductId is not valid
-            if (product == null || product.DeletedDateTime.HasValue || product.SKU < 1 || count > product.SKU)
+            if (product == null || product.DeletedDateTime.HasValue || product.SKU < 1 || Count > product.SKU)
             {
                 return RedirectToAction("Home", "Store");
             }
@@ -66,7 +66,7 @@ namespace Egost.Controllers
             var cartProduct = cart.CartProducts.FirstOrDefault(x => x.Product == product);
 
             // Get the Dictionary of Products in the cart and its count
-            if (count > 0)
+            if (Count > 0)
             {
                 if (cartProduct == null)
                 {
@@ -74,7 +74,7 @@ namespace Egost.Controllers
                     cartProduct = new CartProduct
                     {
                         Product = product,
-                        Quantity = count
+                        Quantity = Count
                     };
                     _db.CartProducts.Add(cartProduct);
                     cart.CartProducts.Add(cartProduct);
@@ -83,7 +83,7 @@ namespace Egost.Controllers
                 else
                 {
                     // Edit Quantity
-                    cartProduct.Quantity = count;
+                    cartProduct.Quantity = Count;
                     _db.CartProducts.Update(cartProduct);
                 }
             }

@@ -44,12 +44,18 @@
                 <label class="col-form-label mt-4" for="inputDefault" asp-for="SKU"></label>
                 <input type="number" min="0" class="form-control" asp-for="SKU">
                 <span class="text-danger" asp-validation-for="SKU"></span>
-            </div><br />
+            </div>
+            <div class="form-group">
+                <label class="col-form-label mt-4" for="inputDefault" asp-for="Warranty"></label>
+                <input type="number" min="0" placeholder="Days" class="form-select" asp-for="Warranty.Days">
+                <span class="text-danger" asp-validation-for="Warranty"></span>
+            </div>
+            <br />
             <div class="form-group media-preview">
                 <label class="col-form-label mt-4">Existing Media</label>
                 @foreach (string source in ViewBag.FileNames)
                 {
-                    var imagePath = Url.Content($"~/ProductMedia/{Model.Id}/{source}");
+                    var imagePath = Url.Content($"~/Media/ProductMedia/{Model.Id}/{source}");
                     <div class="preview-image">
                         <img src="@imagePath">
                     </div>

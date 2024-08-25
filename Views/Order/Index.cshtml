@@ -26,10 +26,12 @@
                     <td>@order.PaymentMethod</td>
                     <td>@(order.Processed ? "Processed" : "Pending")</td>
                     <td>
-                        <a href="@Url.Action("Index", new { Id = order.Id })" class="btn btn-primary btn-sm">View</a>
-                        <form asp-action="Delete" asp-route-orderId="@order.Id" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
+                        @if (order.DeletedDateTime == null)
+                        {
+                            <form asp-action="Delete" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        }
                     </td>
                 </tr>
                 <tr id="order-@order.Id" class="collapse">
@@ -45,32 +47,69 @@
                                         <th>Sale Percent</th>
                                         <th>Quantity</th>
                                         <th>Total Price (Before Sale)</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var orderProduct in order.OrderProducts)
                                     {
-                                        var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+                                        var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{orderProduct.Product.Id}")[0]);
 
                                         var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
                                         <tr>
                                             <td>
                                                 <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
-                                                    <img src="~/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
+                                                    <img src="~/Media/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
                                                 </a>
                                             </td>
                                             <td>@orderProduct.Product.Name</td>
-                                            <td>@afterSalePrice (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
+                                            <td>@string.Format("{0:F2}",afterSalePrice) (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
                                             <td>@orderProduct.SalePercent %</td>
                                             <td>@orderProduct.Quantity</td>
-                                            <td>@(afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                            <td>@string.Format("{0:F2}",afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                            <td>
+                                                <!-- Button trigger modal -->
+                                                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#returnModal">
+                                                    Return Product
+                                                </button>
+
+                                                <!-- Modal -->
+                                                <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h1 class="modal-title fs-5" id="returnModalLabel">Return Product</h1>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <form method="post" asp-area="" asp-controller="Order" asp-action="NewReturnProductOrder" asp-route-OrderId=@order.Id asp-route-OrderProductId=@orderProduct.Id>
+                                                                <div class="modal-body">
+                                                                    <label for="Quantity" class="form-label mt-4">Quantity</label>
+                                                                    <select class="form-select" id="Quantity" name="Quantity">
+                                                                        @for(int i = 1; i <= orderProduct.Quantity; i++)
+                                                                        {
+                                                                            <option value=@i>@i</option>
+                                                                        }
+                                                                    </select>
+
+                                                                    <label class="col-form-label mt-4" for="ReturnReason">Return reason</label>
+                                                                    <input type="text" class="form-control" placeholder="Return reason" id="ReturnReason" name="ReturnReason" required>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
                                         </tr>
                                     }
                                     @if (order.PaymentMethod == "COD")
                                     {
                                         <tr>
                                             <td>
-                                                <button type="button" class="btn btn-primary">
+                                                <button type="button" class="btn btn-outline-secondary" disabled>
                                                     <i class="bi bi-cash-coin"></i>
                                                 </button>
                                             </td>
@@ -79,6 +118,7 @@
                                             <td></td>
                                             <td></td>
                                             <td>+ 10 EGP</td>
+                                            <td></td>
                                         </tr>
                                     }
                                     <tr>
@@ -88,6 +128,7 @@
                                         <td></td>
                                         <td><strong class="text-danger">PromoCode:</strong></td>
                                         <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
+                                        <td></td>
                                     </tr>
                                     <tr>
                                         <td></td>
@@ -96,6 +137,7 @@
                                         <td></td>
                                         <td><strong class="text-success">Total Order:</strong></td>
                                         <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
+                                        <td></td>
                                     </tr>
                                 </tbody>
                             </table>

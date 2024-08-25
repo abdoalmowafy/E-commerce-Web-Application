@@ -15,6 +15,7 @@ namespace Egost.Models
         [Required][DataType(DataType.Currency)] public ulong PriceCents { get; set; }
         [Required][Range(0, 99)] public ushort SalePercent { get; set; } = 0;
         public ICollection<Review> Reviews { get; set; }
+        [Required] public TimeSpan Warranty { get; set; }
         [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         [DataType(DataType.DateTime)] public DateTime? DeletedDateTime { get; set; }
         public ICollection<EditHistory> EditsHistory { get; set; }

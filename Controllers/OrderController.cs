@@ -40,7 +40,7 @@ namespace Egost.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> New(string PaymentMethod, bool DeliveryNeeded, string? identifier, int ShippingAddressId = 1)
+        public async Task<IActionResult> NewOrder(string PaymentMethod, bool DeliveryNeeded, string? identifier, int ShippingAddressId = 1)
         {
             var user = _db.Users
                 .Include(u => u.Orders)
@@ -92,6 +92,7 @@ namespace Egost.Controllers
                     ProductPriceCents = cartProduct.Product.PriceCents,
                     SalePercent = cartProduct.Product.SalePercent,
                     Quantity = cartProduct.Quantity,
+                    Warranty = cartProduct.Product.Warranty,
                 };
                 totalCentsNoPromo += cartProduct.Product.PriceCents * cartProduct.Quantity * Convert.ToByte(100 - cartProduct.Product.SalePercent) / 100;
                 _db.OrderProducts.Add(orderProduct);
@@ -176,13 +177,13 @@ namespace Egost.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public IActionResult Delete(int? orderId)
+        public IActionResult Delete(int? OrderId)
         {
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
             var order = _db.Orders
                 .Include(o => o.OrderProducts)
                     .ThenInclude(op => op.Product)  
-                .FirstOrDefault(o => o.Id == orderId);
+                .FirstOrDefault(o => o.Id == OrderId);
 
             if (order == null || order.User != user)
             {
@@ -201,11 +202,37 @@ namespace Egost.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public IActionResult NewReturnProductOrder(int? OrderId, int? OrderProductId, string ReturnReason, uint Quantity = 1)
+        {
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+            var order = _db.Orders.Include(o => o.User).Include(o => o.OrderProducts).FirstOrDefault(o => o.Id == OrderId);
+            var orderProduct = order.OrderProducts.FirstOrDefault(op => op.Id == OrderProductId);
 
+            if (order == null || order.User != user || orderProduct == null || orderProduct.Quantity < Quantity 
+                || order.CreatedDateTime + orderProduct.Warranty < DateTime.Now || ReturnReason.IsNullOrEmpty())
+            {
+                return Redirect("/");
+            }
+
+            _db.ReturnProductOrders.Add(new()
+            {
+                Order = order,
+                OrderProduct = orderProduct,
+                Quantity = Quantity,
+                ReturnReason = ReturnReason,
+            });
+            orderProduct.PartiallyOrFullyReturnedDateTime = DateTime.Now;
+            _db.OrderProducts.Update(orderProduct);
+            _db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
 
         // The base URL of Paymob API
         private const string BaseUrl = "https://accept.paymob.com/api";
-        [HttpPost]
         private async Task<string> PaymentApiFlow(Order order)
         {
             // Step One: Authentication Request

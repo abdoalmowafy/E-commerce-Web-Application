@@ -1,0 +1,108 @@
+﻿@model (IEnumerable<Order> orders, IEnumerable<ReturnProductOrder> returnProductOrders)
+@{
+    ViewData["Title"] = "IndexAllOrders";
+}
+<div class="container mt-4">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Created Date</th>
+                <th>Total</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.orders)
+            {
+                string rowClass = order.DeletedDateTime != null ? "table-danger" :
+                order.DeliveryDateTime == null ? "table-warning" : "";
+                <tr class="@rowClass" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
+                    <td>@order.Id</td>
+                    <td>@order.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                    <td>@(order.TotalCents / 100.0) @order.Currency</td>
+                    <td>@order.PaymentMethod</td>
+                    <td>@(order.Processed ? "Processed" : "Pending")</td>
+                    <td>
+                        <a href="@Url.Action("Index", new { Id = order.Id })" class="btn btn-primary btn-sm">View</a>
+                        <form asp-action="Delete" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr id="order-@order.Id" class="collapse">
+                    <td colspan="6">
+                        <div>
+                            <h5 class="text-primary">Order Products</h5>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Product</th>
+                                        <th>Price (Before Sale)</th>
+                                        <th>Sale Percent</th>
+                                        <th>Quantity</th>
+                                        <th>Total Price (Before Sale)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var orderProduct in order.OrderProducts)
+                                    {
+                                        var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+
+                                        var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
+                                        <tr>
+                                            <td>
+                                                <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
+                                                    <img src="~/Media/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
+                                                </a>
+                                            </td>
+                                            <td>@orderProduct.Product.Name</td>
+                                            <td>@afterSalePrice (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
+                                            <td>@orderProduct.SalePercent %</td>
+                                            <td>@orderProduct.Quantity</td>
+                                            <td>@(afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                        </tr>
+                                    }
+                                    @if (order.PaymentMethod == "COD")
+                                    {
+                                        <tr>
+                                            <td>
+                                                <button type="button" class="btn btn-primary">
+                                                    <i class="bi bi-cash-coin"></i>
+                                                </button>
+                                            </td>
+                                            <td>Cash on Deleviry Fee:</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>+ 10 EGP</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><strong class="text-danger">PromoCode:</strong></td>
+                                        <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><strong class="text-success">Total Order:</strong></td>
+                                        <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

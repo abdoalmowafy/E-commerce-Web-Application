@@ -21,9 +21,9 @@
         <div class="form-group">
             <label class="col-form-label mt-4" for="inputDefault" asp-for="Category"></label>
             <select class="form-select" asp-for="Category">
-                @foreach (string Cat in ViewBag.Categories)
+                @foreach (string CategoryName in ViewBag.CategoriesNames)
                 {
-                    <option>@Cat</option>
+                    <option>@CategoryName</option>
                 }
             </select>
             <span class="text-danger" asp-validation-for="Category"></span>
@@ -48,6 +48,11 @@
             <label class="col-form-label mt-4" for="inputDefault" asp-for="SKU"></label>
             <input type="number" min="0" class="form-control" asp-for="SKU">
             <span class="text-danger" asp-validation-for="SKU"></span>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label mt-4" for="inputDefault" asp-for="Warranty"></label>
+            <input type="number" placeholder="Days" min="0" class="form-select" asp-for="Warranty.Days">
+            <span class="text-danger" asp-validation-for="Warranty"></span>
         </div>
         <div class="form-group">
             <label class="col-form-label mt-4" for="inputDefault" asp-for="Media">Upload Product media </label>

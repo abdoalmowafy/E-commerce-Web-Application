@@ -1,163 +1,118 @@
 ﻿@model Product
-
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<Egost.Areas.Identity.Data.User> SignInManager
 @inject UserManager<Egost.Areas.Identity.Data.User> UserManager
-
 @{
-    ViewData["Title"] = Model.Name;
+    ViewBag.Title = Model.Name;
+    List<string> imageUrls = ViewBag.FileNames;
+    bool inCart = ViewBag.inCart;
+    bool inWishlist = ViewBag.inWishlist;
 }
-<div class="border p-3 mt-4">
-    <div class="row pb-2">
-        <div class="col-7 main-img">
-            <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                <ol class="carousel-indicators">
-                    @for (int i = 0; i < ViewBag.FileNames.Count; i++)
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Product Image Carousel -->
+        <div class="col-md-6">
+            <div class="swiper main-slider mb-4">
+                <div class="swiper-wrapper">
+                    @foreach (var imageUrl in imageUrls)
                     {
-                        <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i" @if (i == 0) {<text>class="active"</text>}>
-                                <div class="thumbnail">
-                                    <img src="~/ProductMedia/@Model.Id.ToString()/@ViewBag.FileNames[i]">
-                                </div>
-                        </li>
+                        <div class="swiper-slide">
+                            <img src="~/Media/ProductMedia/@Model.Id/@imageUrl" class="img-fluid w-100 h-100" style="object-fit: cover;"/>
+                        </div>
                     }
-                </ol>
-                <div class="carousel-inner">
-                    @for (int i = 0; i < ViewBag.FileNames.Count; i++)
+                </div>
+                <div class="swiper-button-next text-dark"></div>
+                <div class="swiper-button-prev text-dark"></div>
+            </div>
+            <div thumbsSlider="" class="swiper thumbs-slider">
+                <div class="swiper-wrapper justify-content-center">
+                    @foreach (var imageUrl in imageUrls)
                     {
-                        <div @if (i == 0)
+                        <div class="swiper-slide">
+                            <img src="~/Media/ProductMedia/@Model.Id/@imageUrl" height="50px" width="100%"/>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Cart and Wishlist Buttons -->
+            <div class="d-flex gap-3 mt-5">
+                <form method="post" class="d-flex flex-grow-1 gap-3" asp-area="" asp-controller="Cart" asp-action="ModifyProducts" asp-route-ProductId=@Model.Id>
+                    <select name="Count" class="form-select w-auto" @(Model.SKU < 1 ? "disabled" : "")>
+                        @for (int i = 1; i < Model.SKU; i++)
                         {
-                            <text>class="carousel-item active"</text>
+                            <option value=@i>@i</option>                            
+                        }
+                    </select>
+
+                    <button type="submit" class="btn btn-primary flex-grow-1" @(Model.SKU < 1 ? "disabled" : "")>
+                        @if (ViewBag.inCart)
+                        {
+                            <text>Added &nbsp;</text>
+                            <i class="bi bi-bag-check"></i>
                         }
                         else
                         {
-                            <text>class="carousel-item"</text>
-                        }>
-                                <img src="~/ProductMedia/@Model.Id.ToString()/@ViewBag.FileNames[i]" class="d-block w-100">
-                            </div>
-                    }
-                </div>
-                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </a>
-            </div>
-
-            @if (ViewBag.inWishlist)
-            {
-                <a class="wishlist" asp-controller="Store" asp-action="ModifyWishlist" asp-route-ProductId=@Model.Id><i class="bi bi-bookmark-heart-fill"></i></a>
-            }
-            else
-            {
-                <a class="wishlist" asp-controller="Store" asp-action="ModifyWishlist" asp-route-ProductId=@Model.Id><i class="bi bi-bookmark-heart"></i></a>
-            }
-        </div>
-        <div class="col-5">
-            <div class="row pb-2">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-Product"><a href="/">Home</a></li>
-                    <li class="breadcrumb-Product"><a asp-controller="Store" asp-action="search" asp-route-category=@Model.Category.Name>@Model.Category.Name</a></li>
-                    <li class="breadcrumb-Product active"></li>
-                </ol>
-                <br /><br />
-                <text class="text-primary fs-1">@Model.Name</text>
-            </div>
-            <div class="row pb-2">
-                <br /><br /><br />
-                <text class="fs-1">@(Model.PriceCents * Convert.ToByte(100 - @Model.SalePercent) / 10000.0) EGP</text>
-                @if (Model.SalePercent > 0)
-                {
-                    <h4 class="text-danger"><text class="text-decoration-line-through">@(Model.PriceCents * 0.01) EGP</text> (-10%)</h4>
-                }
-                @if (Model.SKU > 0)
-                {
-                    <p class="text-success">@Model.SKU In Stock</p>
-                }
-                else
-                {
-                    <p class="text-danger">Out Of Stock</p>
-                }
-            </div>
-            @if (ViewBag.inCart)
-            {
-                <a id="cart" class="btn btn-success" asp-controller="Cart" asp-action="Index">Added &nbsp; <i class="bi bi-bag-check"></i></a>
-            }
-            else if (Model.SKU < 1)
-            {
-                <a id="cart" class="btn btn-warning disabled">Add To Cart &nbsp; <i class="bi bi-bag"></i></a>
-            }
-            else
-            {
-                <form method="post" asp-area="" asp-controller="Cart" asp-action="ModifyProducts" asp-route-ProductId=@Model.Id>
-                    <button type="submit" id="cart" class="btn btn-warning">Add To Cart &nbsp; <i class="bi bi-bag"></i></button>
+                            <text>Add To Cart &nbsp;</text>
+                            <i class="bi bi-bag"></i>
+                        }
+                    </button>
                 </form>
-            }
-            <br /><br />
-            <a id="share" class="btn btn-info">Share &nbsp; <i class="bi bi-share"></i></a>
-            <br /><br />
+
+                <form method="post" asp-area="" asp-controller="Store" asp-action="ModifyWishlist" asp-route-ProductId=@Model.Id>
+                    <button type="submit" class="btn @(inWishlist ? "btn-danger" : "btn-outline-secondary")">
+                        <i class="bi @(inWishlist ? "bi-bookmark-heart-fill" : "bi-bookmark-heart")"></i>
+                    </button>
+                </form>
+            </div>
+        
+            <!-- Admin Edit and Chart View Buttons -->
             @if (SignInManager.IsSignedIn(User))
             {
                 Egost.Areas.Identity.Data.User user = UserManager.GetUserAsync(User).Result!;
                 @if (await UserManager.IsInRoleAsync(user, "Admin") || await UserManager.IsInRoleAsync(user, "Moderator"))
                 {
-                    <div class="d-inline">
-                        <a class="btn btn-primary btn-sm" asp-controller="Manage" asp-action="EditProduct" asp-route-id="@Model.Id">Modify &nbsp; <i class="bi bi-wrench"></i></a>
-                        <a class="btn btn-dark btn-sm" asp-controller="Manage" asp-action="ChartView" asp-route-ProductId="@Model.Id">Charts &nbsp; <i class="bi bi-graph-up-arrow"></i></a>
+                    <div class="d-flex gap-3 mt-5">
+                        <a class="btn btn-info flex-grow-1 btn-sm" asp-controller="Manage" asp-action="EditProduct" asp-route-id="@Model.Id">Modify &nbsp; <i class="bi bi-wrench"></i></a>
+                        <a class="btn btn-dark flex-grow-1 btn-sm" asp-controller="Manage" asp-action="ChartView" asp-route-ProductId="@Model.Id">Charts &nbsp; <i class="bi bi-graph-up-arrow"></i></a>
                     </div>
-                    <br /><br />
                 }
             }
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <a class="text-muted text-decoration-none" asp-area="" asp-controller="Store" asp-action="Search" asp-route-categoryName=@Model.Category.Name>@Model.Category.Name</a>
+            <h1>@Model.Name</h1>
+            <h3 class="text-primary"> @($"{Model.PriceCents * (1 - Model.SalePercent / 100.0) / 100.0:F2}") EGP</h3>
 
+            @if (Model.SalePercent > 0)
+            {
+                <h6>
+                    <span class="text-muted"><del>@(Model.PriceCents / 100) EGP</del></span> &ensp; <span class="badge bg-success">@Model.SalePercent% OFF</span>
+                </h6>
+            }
 
+            <h4>Description:</h4>
+            <p style ="white-space: pre-wrap;">@Model.Description</p>
 
-            <div class="row pb-2">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-Product" role="presentation">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#Description" aria-selected="true" role="tab">Description</a>
-                    </li>
-                    <li class="nav-Product" role="presentation">
-                        <a class="nav-link" data-bs-toggle="tab" href="#Reviews" aria-selected="true" role="tab">Reviews</a>
-                    </li>
-                </ul>
-                <div id="myTabContent" class="tab-content">
-                    <div class="tab-pane fade show active" id="Description" role="tabpanel">
-                        <p>@Model.Description</p>
+            <!-- Reviews -->
+            <div class="mt-4">
+                <h5>Reviews:</h5>
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="review mb-2">
+                        <strong>@review.Reviewer.Name</strong>
+                        <p>@review.Text</p>
+                        <p class="text-muted">@review.CreatedDateTime.ToShortDateString()</p>
                     </div>
-                    <div class="tab-pane fade" id="Reviews" role="tabpanel">
-                        <p>
-                            @foreach (var review in Model.Reviews)
-                            {
-                                if (review.DeletedDateTime == null)
-                                {
-                                    <h3>@review.Reviewer.Name</h3>
-                                    <h3>@review.Rate</h3>
-                                    <h3>@review.Text</h3>
-                                    <h3>@review.CreatedDateTime</h3>
-                                }
-                            }
-                        </p>
-                        <form method="post" asp-area="" asp-controller="Store" asp-action="AddReview" asp-route-ProductId=@Model.Id>
-                            <div class="form-group">
-                                <label class="form-label mt-4" for="inputDefault" name="Text">Text</label>
-                                <textarea class="form-control" rows="3" name="Text"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>
-    <div class="container">
-    </div>
-    <br><br>
 </div>
 
 @section Scripts {
     <script src="~/js/FullView.js"></script>
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
 }

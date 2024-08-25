@@ -85,95 +85,6 @@ body {
         }
 
 
-
-
-/* Full View */
-.main-img {
-    position: relative;
-}
-
-    .main-img .bi-bookmark-heart {
-        color: silver;
-        font-size: xx-large;
-        display: none;
-        position: absolute;
-        top: 20px; /* Adjust the top position as needed */
-        right: 50px; /* Adjust the right position as needed */
-    }
-
-    .main-img:hover .bi-bookmark-heart {
-        display: inline-block;
-    }
-
-.bi-bookmark-heart:hover {
-    color: red;
-}
-
-.wishlist .bi-bookmark-heart-fill {
-    color: red;
-    font-size: xx-large;
-    display: inline-block;
-    position: absolute;
-    top: 20px; /* Adjust the top position as needed */
-    right: 50px; /* Adjust the right position as needed */
-}
-
-
-
-
-/* Nav Bar */
-.nav-fill {
-    width: auto;
-    overflow: hidden;
-}
-
-#nav-search {
-    position: relative;
-    display: block;
-    overflow: hidden;
-}
-
-    #nav-search select {
-        position: absolute;
-        left: 0px;
-        top: 0px;
-        /*opacity: 0;*/
-        display: block;
-        outline: none;
-        cursor: pointer;
-    }
-
-    #nav-search .nav-fill input {
-        border: none;
-        font-size: 15px;
-        color: #111;
-        outline: none;
-    }
-
-
-/* carousel */
-.carousel-indicators {
-    list-style: none;
-}
-
-    .carousel-indicators li, .carousel-indicators li.active {
-        width: 70px;
-        height: 70px;
-        background-color: #fff;
-        position: relative;
-        margin: 10px;
-    }
-
-    .carousel-indicators img {
-        position: absolute;
-        width: 100%;
-        border-radius: 50%;
-        height: 100%;
-        top: 0px;
-        left: 0;
-    }
-
-
 /* Identity */
 .form-floating {
     margin-bottom: 20px;
@@ -183,4 +94,16 @@ body {
 .icon {
     height: 60px;
     width: 60px;
+}
+
+/* Home page */
+.category-circle {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.card-text del {
+    margin-right: 10px;
 }
