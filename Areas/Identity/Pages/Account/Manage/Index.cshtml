@@ -12,8 +12,8 @@
         <form id="profile-form" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Email" class="form-control" disabled />
+                <label asp-for="Email" class="form-label"></label>
             </div>
             <div class="form-floating">
                 <input asp-for="Input.Name" class="form-control" />
@@ -22,6 +22,10 @@
             <div class="form-floating">
                 <input asp-for="Input.DOB" class="form-control" />
                 <label asp-for="Input.DOB" class="form-label"></label>
+            </div>
+            <div class="form-floating">
+                <input asp-for="Input.Gender" class="form-control" />
+                <label asp-for="Input.Gender" class="form-label"></label>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>

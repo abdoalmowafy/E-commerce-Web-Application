@@ -7,7 +7,7 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         [Required] public string AddressLine1 { get; set; }
-        public string AddressLine2 { get; set; } = string.Empty;
+        public string? AddressLine2 { get; set; }
         [Required] public string City { get; set; }
         [Required] public string Country { get; set; }
         [Required][DataType(DataType.PostalCode)] public string PostalCode { get; set; }

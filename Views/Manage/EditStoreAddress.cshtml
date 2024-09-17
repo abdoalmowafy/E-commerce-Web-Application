@@ -1,0 +1,80 @@
+﻿@model Address
+@{
+    ViewData["Title"] = "Edit Address";
+}
+
+<h2>Edit Store Address</h2>
+
+<form method="post">
+    <div class="form-group mb-3">
+        <label asp-for="Country"></label>
+        <input asp-for="Country" class="form-control" />
+        <span asp-validation-for="Country" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="City"></label>
+        <input asp-for="City" class="form-control" />
+        <span asp-validation-for="City" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="AddressLine1"></label>
+        <input asp-for="AddressLine1" class="form-control" />
+        <span asp-validation-for="AddressLine1" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="AddressLine2"></label>
+        <input asp-for="AddressLine2" class="form-control" />
+        <span asp-validation-for="AddressLine2" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="PostalCode"></label>
+        <input asp-for="PostalCode" class="form-control" />
+        <span asp-validation-for="PostalCode" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Telephone"></label>
+        <input asp-for="Telephone" class="form-control" />
+        <span asp-validation-for="Telephone" class="text-danger"></span>
+    </div>
+    <input type="checkbox" asp-for="StoreAddress" checked hidden />
+    <div class="row p-3">
+        <div class="col-6">
+            <button type="submit" class="btn btn-info">Edit Address</button>
+            <a class="btn btn-dark" asp-controller="Manage" asp-action="IndexStoreAddresses">Back to Addresses</a>
+        </div>
+        <div class="col-6 text-end">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete &nbsp; <i class="bi bi-trash3-fill"></i></button>
+        </div>
+    </div>
+</form>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Item</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form class="d-flex" method="post" asp-area="" asp-controller="Manage" asp-action="DeleteStoreAddress" asp-route-storeAddressId="@Model.Id" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

@@ -1,0 +1,45 @@
+﻿@page
+@model AddressesModel
+@{
+    ViewData["ActivePage"] = ManageNavPages.Addresses;
+    ViewData["Title"] = "Manage Addresses";
+}
+
+<h2>Manage Addresses</h2>
+
+<div class="mb-3">
+    <a asp-page="AddAddress" class="btn btn-primary">Add New Address</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Address Line 1</th>
+            <th>Address Line 2</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Postal Code</th>
+            <th>Telephone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var address in Model.Addresses)
+        {
+            <tr>
+                <td>@address.AddressLine1</td>
+                <td>@address.AddressLine2</td>
+                <td>@address.City</td>
+                <td>@address.Country</td>
+                <td>@address.PostalCode</td>
+                <td>@address.Telephone</td>
+                <td>
+                    <a asp-page="EditAddress" asp-route-id="@address.Id" class="btn btn-info btn-sm">Edit</a>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@address.Id" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

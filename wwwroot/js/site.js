@@ -22,39 +22,3 @@ for (var i = 0; i < minorImgs.length; i++) {
         mainImg.src = this.src;
     });
 }
-
-
-// 
-var countDisplays = document.getElementsByClassName("count-display");
-var countInputs = document.getElementsByClassName("count-input");
-for (let i = 0; i < countDisplays.length; i++) {
-    countDisplays[i].addEventListener("click", function () {
-        console.log("Show");
-        countInputs[i].removeAttribute("Hidden");
-        this.setAttribute("hidden", "");
-    });
-}
-
-
-
-
-
-const tel = document.getElementById("identifier");
-const radios = document.getElementsByName("PaymentMethod");
-
-for (let i = 0; i < radios.length; i++) {
-    if (i != 2) {
-        radios[i].addEventListener("change", function () {
-            console.log("unvisable");
-            tel.setAttribute("hidden", "");
-            tel.removeAttribute("required");
-        });
-    }
-    else {
-        radios[i].addEventListener("change", function () {
-            console.log("visable");
-            tel.setAttribute("required", "");
-            tel.removeAttribute("hidden");
-        });
-    }
-}

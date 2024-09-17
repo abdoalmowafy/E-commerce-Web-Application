@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Address>
+@{
+    ViewData["Title"] = "Store Addresses";
+}
+
+<h2>Store Addresses</h2>
+
+<div class="mb-3">
+    <a asp-area="" asp-controller="Manage" asp-action="NewStoreAddress" class="btn btn-primary">Add New Address</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Address Line 1</th>
+            <th>Address Line 2</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Postal Code</th>
+            <th>Telephone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var address in Model)
+        {
+            <tr>
+                <td>@address.AddressLine1</td>
+                <td>@address.AddressLine2</td>
+                <td>@address.City</td>
+                <td>@address.Country</td>
+                <td>@address.PostalCode</td>
+                <td>@address.Telephone</td>
+                <td>
+                    <a asp-area="" asp-controller="Manage" asp-action="EditStoreAddress" asp-route-storeAddressId="@address.Id" class="btn btn-info btn-sm">Edit</a>
+                    
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

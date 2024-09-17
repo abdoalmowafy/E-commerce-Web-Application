@@ -14,7 +14,7 @@ namespace Egost.Controllers
 
 
 
-
+        //Product Managment
         // GET
         [Authorize(Roles = "Admin,Moderator")]
         public IActionResult NewProduct()
@@ -59,9 +59,6 @@ namespace Egost.Controllers
             ViewBag.CategoriesNames = GetCategoriesNames();
             return View(obj);
         }
-
-
-
 
         // GET
         [Authorize(Roles = "Admin,Moderator")]
@@ -171,12 +168,34 @@ namespace Egost.Controllers
             return RedirectToAction("Home", "Store");
         }
 
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult ChartView(int? ProductId)
+        {
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
 
+            IEnumerable<OrderProduct> orderProducts = _db.OrderProducts
+                .Include(op => op.Product)
+                .Where(op => op.Product.Id == ProductId);
+
+            IEnumerable<ReturnProductOrder> returnProductOrders = _db.ReturnProductOrders
+                .Include(rpo => rpo.OrderProduct)
+                    .ThenInclude(op => op.Product)
+                .Where(rpo => rpo.OrderProduct.Product.Id == ProductId);
+
+            return View((orderProducts, returnProductOrders));
+        }
+
+
+
+
+
+
+        // Orders Managment
         [Authorize(Roles = "Admin,Moderator,Transporter")]
         public IActionResult IndexAllOrders(bool undeliveredOnly = false)
         {
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
-            IEnumerable<Order> orders = _db.Orders.Include(o => o.Transporter);
+            IEnumerable<Order> orders = _db.Orders.Include(o => o.Transporter).Include(o => o.OrderProducts);
             IEnumerable<ReturnProductOrder> returnProductOrders = _db.ReturnProductOrders.Include(rpo => rpo.Transporter);
             if (User.IsInRole("Transporter"))
             {
@@ -190,8 +209,7 @@ namespace Egost.Controllers
             }
             
             return View((orders,returnProductOrders));
-        }
-        
+        }        
 
         [Authorize(Roles = "Admin,Moderator,Transporter")]
         public IActionResult Delivered(int? OrderId)
@@ -234,22 +252,89 @@ namespace Egost.Controllers
             return RedirectToAction("IndexAllOrders");
         }
 
+
+
+
+        // Store Addresses Managment
         [Authorize(Roles = "Admin,Moderator")]
-        public IActionResult ChartView(int? ProductId)
+        public IActionResult IndexStoreAddresses()
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-
-            IEnumerable<OrderProduct> orderProducts = _db.OrderProducts
-                .Include(op => op.Product)
-                .Where(op => op.Product.Id == ProductId);
-
-            IEnumerable<ReturnProductOrder> returnProductOrders = _db.ReturnProductOrders
-                .Include(rpo => rpo.OrderProduct)
-                    .ThenInclude(op => op.Product)
-                .Where(rpo => rpo.OrderProduct.Product.Id == ProductId);
-
-            return View((orderProducts, returnProductOrders));
+            return View(_db.Addresses.Where(adr => adr.StoreAddress));
         }
+
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult NewStoreAddress()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult NewStoreAddress(Address newAddress)
+        {
+            newAddress.StoreAddress = true;
+            if (ModelState.IsValid)
+            {
+                _db.Addresses.Add(newAddress);
+                _db.SaveChanges();
+                TempData["success"] = "Address Added successfully!";
+                return RedirectToAction(nameof(IndexStoreAddresses));
+            }
+            return View(newAddress);
+        }
+
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult EditStoreAddress(int storeAddressId)
+        {
+            var OldStoreAddress = _db.Addresses.Find(storeAddressId);
+
+            // Check If Address Exists
+            if (OldStoreAddress == null || !OldStoreAddress.StoreAddress)
+            {
+                TempData["fail"] = "Address not found!";
+                return Redirect("/");
+            }
+
+            return View(OldStoreAddress);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult EditStoreAddress(Address storeAddress)
+        {
+            storeAddress.StoreAddress = true;
+            if (ModelState.IsValid)
+            {
+                _db.Addresses.Update(storeAddress);
+                _db.SaveChanges();
+                TempData["info"] = "Address Updated Successfully!";
+                return RedirectToAction(nameof(IndexStoreAddresses));
+            }
+
+            return View(storeAddress);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult DeleteStoreAddress(int storeAddressId)
+        {
+            var storeAddress = _db.Addresses.Find(storeAddressId);
+
+            // Check If Address Exists
+            if (storeAddress == null || !storeAddress.StoreAddress)
+            {
+                TempData["fail"] = "Address not found!";
+                return Redirect("/");
+            }
+
+            _db.Addresses.Remove(storeAddress);
+            _db.SaveChanges();
+            return View(storeAddress);
+        }
+
 
         [Authorize(Roles = "Admin,Moderator")]
         public IActionResult MostSearchInLast(int year = 0, int month = 0, int day = 0, int hour = 0, int minute = 0)

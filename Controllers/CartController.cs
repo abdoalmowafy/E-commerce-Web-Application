@@ -14,13 +14,16 @@ namespace Egost.Controllers
 
         public IActionResult Index()
         {
-            var cart = _db.Users
+            var user = _db.Users
+                .Include(u => u.Addresses)
                 .Include(u => u.Cart)
                     .ThenInclude(c => c.CartProducts)
                         .ThenInclude(cp => cp.Product)
                 .Include(u => u.Cart)
                     .ThenInclude(c => c.PromoCode)
-                .FirstOrDefault(u => u.UserName == User.Identity!.Name)!.Cart;
+                .FirstOrDefault(u => u.UserName == User.Identity!.Name);
+            var cart = user!.Cart;
+            var addresses = user.Addresses;
 
             var invalidCartProducts = cart.CartProducts.Where(cp => cp.Product.DeletedDateTime.HasValue || cp.Product.SKU < 1 || cp.Quantity > cp.Product.SKU);
             if (invalidCartProducts.Any()) 
@@ -42,6 +45,8 @@ namespace Egost.Controllers
             }
             
             ViewBag.PromoCode = cart.PromoCode;
+            ViewBag.StoreAddresses = _db.Addresses.Where(ad => ad.StoreAddress);
+            ViewBag.UserAddresses = addresses;
 
             return View(cart.CartProducts);
         }

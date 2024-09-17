@@ -40,7 +40,7 @@ namespace Egost.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> NewOrder(string PaymentMethod, bool DeliveryNeeded, string? identifier, int ShippingAddressId = 1)
+        public async Task<IActionResult> NewOrder(string PaymentMethod, string? identifier, int ShippingAddressId)
         {
             var user = _db.Users
                 .Include(u => u.Orders)
@@ -82,7 +82,7 @@ namespace Egost.Controllers
             }
 
             
-            // Creating Order
+            // Creating Order Instance
             ulong totalCentsNoPromo = 0;
             var orderProducts = new List<OrderProduct>(cartProducts.Count);
             foreach (var cartProduct in cartProducts)
@@ -108,7 +108,7 @@ namespace Egost.Controllers
                 PaymentMethod = PaymentMethod,
                 Processed = !NeedProcessing,
                 TotalCents = Fee + (promo == null ? totalCentsNoPromo : totalCentsNoPromo * Convert.ToByte(100 - promo.Percent) / 100),
-                DeliveryNeeded = DeliveryNeeded,
+                DeliveryNeeded = !address.StoreAddress,
                 OrderProducts = orderProducts,
                 Address = address
             };

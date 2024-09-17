@@ -19,7 +19,10 @@
                         <img src="~/Egost Logo.jpg" width="180px"/>
                     </a>
                     <form method="get" class="d-flex flex-grow-1 mx-5" role="search" asp-area="" asp-controller="Store" asp-action="Search">
-                        <input type="search" name="KeyWord" class="form-control" placeholder="Search..." aria-label="Search">
+                        <div class="input-group">
+                            <input type="search" name="KeyWord" class="form-control" placeholder="Search..." aria-label="Search">
+                            <button class="btn btn-info" type="submit"><i class="bi bi-search"></i></button>
+                        </div>
                     </form>
                     <ul class="nav col-12 col-lg-auto my-2 justify-content-center text-center my-md-0 text-small">
                         <li>

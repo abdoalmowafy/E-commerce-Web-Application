@@ -1,0 +1,48 @@
+﻿@page
+@model AddAddressModel
+@{
+    ViewData["Title"] = "Add Address";
+}
+
+<h2>Add New Address</h2>
+
+<form method="post">
+    <div class="form-group mb-3">
+        <label asp-for="Address.Country"></label>
+        <input asp-for="Address.Country" class="form-control" />
+        <span asp-validation-for="Address.Country" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Address.City"></label>
+        <input asp-for="Address.City" class="form-control" />
+        <span asp-validation-for="Address.City" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Address.AddressLine1"></label>
+        <input asp-for="Address.AddressLine1" class="form-control" />
+        <span asp-validation-for="Address.AddressLine1" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Address.AddressLine2"></label>
+        <input asp-for="Address.AddressLine2" class="form-control" />
+        <span asp-validation-for="Address.AddressLine2" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Address.PostalCode"></label>
+        <input asp-for="Address.PostalCode" class="form-control" />
+        <span asp-validation-for="Address.PostalCode" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Address.Telephone"></label>
+        <input asp-for="Address.Telephone" class="form-control" />
+        <span asp-validation-for="Address.Telephone" class="text-danger"></span>
+    </div>
+    <input type="checkbox" asp-for="Address.StoreAddress" hidden />
+    <button type="submit" class="btn btn-primary">Add Address</button>
+</form>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

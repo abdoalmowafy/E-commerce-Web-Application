@@ -30,7 +30,7 @@ namespace Egost.Areas.Identity.Pages.Account.Manage
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public string Username { get; set; }
+        public string Email { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -66,6 +66,11 @@ namespace Egost.Areas.Identity.Pages.Account.Manage
             [DataType(DataType.Date)]
             public DateOnly DOB { get; set; }
 
+            [DataType(DataType.Text)]
+            [AllowedValues("Male", "Female")]
+            [Display(Name = "Gender")]
+            public string Gender { get; set; }
+
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -73,15 +78,16 @@ namespace Egost.Areas.Identity.Pages.Account.Manage
 
         private async Task LoadAsync(User user)
         {
-            var userName = await _userManager.GetUserNameAsync(user);
+            var email = await _userManager.GetEmailAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            Username = userName;
+            Email = email;
 
             Input = new InputModel
             {
                 Name = user.Name,
                 DOB = user.DOB,
+                Gender = user.Gender,
                 PhoneNumber = phoneNumber
             };
         }
@@ -131,6 +137,11 @@ namespace Egost.Areas.Identity.Pages.Account.Manage
             if (Input.DOB != user.DOB)
             {
                 user.DOB = Input.DOB;
+            }
+
+            if (Input.Gender != user.Gender)
+            {
+                user.Gender = Input.Gender;
             }
 
             await _userManager.UpdateAsync(user);
