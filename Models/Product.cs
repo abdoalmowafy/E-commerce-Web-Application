@@ -12,6 +12,7 @@ namespace Egost.Models
         [Required] public int CategoryId { get; set; }
         [Required][ForeignKey("CategoryId")] public Category Category { get; set; }
         [Required] public uint SKU { get; set; } // Stock Keeping Unit
+        public ulong Views { get; set; } = 0;
         [Required][DataType(DataType.Currency)] public ulong PriceCents { get; set; }
         [Required][Range(0, 99)] public ushort SalePercent { get; set; } = 0;
         public ICollection<Review> Reviews { get; set; }

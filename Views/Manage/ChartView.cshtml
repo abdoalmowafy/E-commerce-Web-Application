@@ -1,6 +1,179 @@
-﻿@model IEnumerable<OrderProduct>
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<dynamic>
 @{
+    ViewData["Title"] = "Product Metrics Dashboard";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-5">Product Metrics Dashboard</h2>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h3>Revenue Distribution</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <h3>Total Sales</h3>
+            <canvas id="totalSalesChart"></canvas>
+        </div>
+        <div class="col-md-4">
+            <h3>In Cart Rate</h3>
+            <canvas id="cartRateChart"></canvas>
+        </div>
+        <div class="col-md-4">
+            <h3>Wishlist Rate</h3>
+            <canvas id="wishlistChart"></canvas>
+        </div>
+    </div>
+
+
+    <table class="table" id="sort">
+        <thead>
+            <tr>
+                <th scope="col" data-sort-method="number">Id</th>
+                <th scope="col" data-sort-method="text">Product Name</th>
+                <th scope="col" data-sort-method="number">Total Sales</th>
+                <th scope="col" data-sort-method="number">Revenue (EGP)</th>
+                <th scope="col" data-sort-method="number">Stock Level</th>
+                <th scope="col" data-sort-method="number">Product Views</th>
+                <th scope="col" data-sort-method="number">Cart Count</th>
+                <th scope="col" data-sort-method="number">Wishlist Count</th>
+                <th scope="col" data-sort-method="number">Return Rate</th>
+                <th scope="col" data-sort-method="number">Average Rating &nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td><a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id>@product.Name</a></td>
+                    <td>@product.TotalSales</td>
+                    <td>@String.Format("{0:N}", product.Revenue / 100) EGP</td>
+                    <td>@product.StockLevel</td>
+                    <td>@product.ProductViews</td>
+                    <td>@product.CartCount</td>
+                    <td>@product.WishlistCount</td>
+                    <td>@String.Format("{0:P}", product.ReturnRate)</td>
+                    <td>@String.Format("{0:N1}", product.AverageRating) / 5</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <!-- Tablesort Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/sorts/tablesort.number.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Initialize Tablesort on the table
+        new Tablesort(document.getElementById('sort'));
+
+
+        // Prepare data for charts
+        var productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+
+        var productNames = productData.map(p => p.Name);
+        var totalSalesData = productData.map(p => p.TotalSales);
+        var revenueData = productData.map(p => p.Revenue / 100);
+        var cartCountData = productData.map(p => p.CartCount);
+        var wishlistCountData = productData.map(p => p.WishlistCount);
+
+        // Revenue Bar Chart
+        var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Revenue (EGP)',
+                    data: revenueData,
+                    backgroundColor: '#2196f3'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Total Sales Pie Chart
+        var totalSalesCtx = document.getElementById('totalSalesChart').getContext('2d');
+        new Chart(totalSalesCtx, {
+            type: 'pie',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Total Sales',
+                    data: totalSalesData,
+                    backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // In Cart Rate Pie Chart
+        var cartRateCtx = document.getElementById('cartRateChart').getContext('2d');
+        new Chart(cartRateCtx, {
+            type: 'pie',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'In Cart Rate',
+                    data: cartCountData,
+                    backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Wishlist Rate Pie Chart
+        var wishlistCtx = document.getElementById('wishlistChart').getContext('2d');
+        new Chart(wishlistCtx, {
+            type: 'pie',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Wishlist Count',
+                    data: wishlistCountData,
+                    backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
 }

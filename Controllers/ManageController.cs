@@ -169,24 +169,74 @@ namespace Egost.Controllers
         }
 
         [Authorize(Roles = "Admin,Moderator")]
-        public IActionResult ChartView(int? ProductId)
+        public IActionResult ChartView()
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+            var productMetrics = _db.Products.Select(product => new
+            {
+                product.Id,
+                product.Name,
+                TotalSales = _db.OrderProducts.Where(op => op.Product.Id == product.Id).Sum(op => (int)op.Quantity),
+                Revenue = _db.OrderProducts.Where(op => op.Product.Id == product.Id).Sum(op => op.ProductPriceCents * (1 - op.SalePercent / 100.0) * op.Quantity),
+                StockLevel = product.SKU,
+                ProductViews = product.Views,
+                CartCount = _db.CartProducts.Where(cp => cp.Product.Id == product.Id).Count(),
+                WishlistCount = _db.Users.Where(u => u.WishList.Any(p => p.Id == product.Id)).Count(),
+                ReturnRate = _db.ReturnProductOrders.Where(rpo => rpo.OrderProduct.Product.Id == product.Id).Count() / (double)(_db.OrderProducts.Where(op => op.Product.Id == product.Id).Count() + 1),
+                AverageRating = product.Reviews.Any() ? product.Reviews.Average(r => r.Rating) : 0
+            }).ToList();
 
-            IEnumerable<OrderProduct> orderProducts = _db.OrderProducts
-                .Include(op => op.Product)
-                .Where(op => op.Product.Id == ProductId);
-
-            IEnumerable<ReturnProductOrder> returnProductOrders = _db.ReturnProductOrders
-                .Include(rpo => rpo.OrderProduct)
-                    .ThenInclude(op => op.Product)
-                .Where(rpo => rpo.OrderProduct.Product.Id == ProductId);
-
-            return View((orderProducts, returnProductOrders));
+            return View(productMetrics);
         }
 
+        [Authorize(Roles = "Admin,Moderator")]
+        public IActionResult ProductCharts(int id)
+        {
+            var product = _db.Products
+                .Include(p => p.Reviews)
+                .Include(p => p.Category)
+                .FirstOrDefault(p => p.Id == id);
 
+            if (product == null)
+            {
+                return NotFound();
+            }
+            var cartCount = _db.CartProducts
+                .Where(cp => cp.Product.Id == id).Count();
 
+            var wishlistCount = _db.Users.Include(u => u.WishList)
+                .Where(u => u.WishList.Any(p => p.Id == id)).Count();
+
+            var totalSales = _db.OrderProducts
+                .Where(op => op.Product.Id == id)
+                .Sum(op => op.Quantity);
+
+            var revenue = _db.OrderProducts
+                .Where(op => op.Product.Id == id)
+                .Sum(op => op.ProductPriceCents * (1 - (op.SalePercent / 100.0)) * op.Quantity);
+
+            var returnCount = _db.ReturnProductOrders
+                .Where(rpo => rpo.OrderProduct.Product.Id == id)
+                .Count();
+
+            var Ratings = new ulong[5];
+            foreach (var review in product.Reviews) Ratings[review.Rating - 1]++;
+
+            var productMetrics = new
+            {
+                product.Id,
+                product.Name,
+                cartCount,
+                wishlistCount,
+                product.Views,
+                product.SKU,
+                totalSales,
+                revenue,
+                returnCount,
+                Ratings
+            };
+
+            return View(productMetrics);
+        }
 
 
 

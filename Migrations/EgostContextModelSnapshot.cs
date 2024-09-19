@@ -119,7 +119,6 @@ namespace Egost.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AddressLine2")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
@@ -161,10 +160,9 @@ namespace Egost.Migrations
                         {
                             Id = 1,
                             AddressLine1 = "Base",
-                            AddressLine2 = "",
                             City = "Base",
                             Country = "Base",
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7742),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1327),
                             PostalCode = "Base",
                             StoreAddress = true,
                             Telephone = "Base"
@@ -483,6 +481,9 @@ namespace Egost.Migrations
                     b.Property<int>("SalePercent")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Views")
+                        .HasColumnType("decimal(20,0)");
+
                     b.Property<TimeSpan>("Warranty")
                         .HasColumnType("time");
 
@@ -497,300 +498,325 @@ namespace Egost.Migrations
                         {
                             Id = 1,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7980),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1514),
                             Description = "High-quality tennis racket for professionals.",
                             Name = "Wilson Tennis Racket",
                             PriceCents = 8999m,
                             SKU = 10001L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(730, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 2,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7983),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1518),
                             Description = "Top-notch acoustic guitar with a smooth finish.",
                             Name = "Yamaha Acoustic Guitar",
                             PriceCents = 14999m,
                             SKU = 10002L,
                             SalePercent = 15,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 3,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7987),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1521),
                             Description = "Latest EA sports soccer game ps5 edition.",
                             Name = "EA sports FC24 for PS5",
                             PriceCents = 12999m,
                             SKU = 10003L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(14, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 4,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7989),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1523),
                             Description = "Official size soccer ball for all levels.",
                             Name = "Adidas Soccer Ball",
                             PriceCents = 2999m,
                             SKU = 10004L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 5,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7992),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1526),
                             Description = "Complete badminton set for backyard fun.",
                             Name = "Wilson Badminton Set",
                             PriceCents = 4599m,
                             SKU = 10005L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 6,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7996),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1530),
                             Description = "Buildable Star Wars-themed LEGO set.",
                             Name = "LEGO Star Wars Set",
                             PriceCents = 7999m,
                             SKU = 20001L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(183, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 7,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7999),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1532),
                             Description = "Next-generation gaming console with ultra-high-speed SSD.",
                             Name = "PlayStation 5 Console",
                             PriceCents = 49999m,
                             SKU = 20002L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 8,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8001),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1535),
                             Description = "Powerful gaming console with immersive gameplay.",
                             Name = "Xbox Series X",
                             PriceCents = 49999m,
                             SKU = 20003L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 9,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8004),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1538),
                             Description = "Portable gaming console for versatile play.",
                             Name = "Nintendo Switch",
                             PriceCents = 29999m,
                             SKU = 20004L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 10,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8007),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1541),
                             Description = "Classic board game for family and friends.",
                             Name = "Hasbro Monopoly Game",
                             PriceCents = 1999m,
                             SKU = 20005L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 11,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8010),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1543),
                             Description = "Reliable sewing machine for all skill levels.",
                             Name = "Singer Sewing Machine",
                             PriceCents = 15999m,
                             SKU = 30001L,
                             SalePercent = 20,
+                            Views = 0m,
                             Warranty = new TimeSpan(1095, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 12,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8012),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1546),
                             Description = "Versatile cutting machine for crafting projects.",
                             Name = "Cricut Maker Machine",
                             PriceCents = 39999m,
                             SKU = 30002L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(730, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 13,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8015),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1583),
                             Description = "High-quality colored pencils for artists.",
                             Name = "Faber-Castell Colored Pencils",
                             PriceCents = 2499m,
                             SKU = 30003L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 14,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8018),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1586),
                             Description = "Alcohol-based markers for smooth blending.",
                             Name = "Prismacolor Markers",
                             PriceCents = 3999m,
                             SKU = 30004L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 15,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8021),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1589),
                             Description = "Premium watercolor paints for artists.",
                             Name = "Schmincke Watercolors",
                             PriceCents = 5999m,
                             SKU = 30005L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 16,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8023),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1592),
                             Description = "Classic straight-fit jeans for men.",
                             Name = "Levi's Denim Jeans",
                             PriceCents = 4999m,
                             SKU = 40001L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 17,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8026),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1595),
                             Description = "Comfortable and stylish sneakers for daily wear.",
                             Name = "Nike Air Max Sneakers",
                             PriceCents = 8999m,
                             SKU = 40002L,
                             SalePercent = 15,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 18,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8029),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1597),
                             Description = "Soft cotton T-shirt with modern fit.",
                             Name = "Calvin Klein T-shirt",
                             PriceCents = 1999m,
                             SKU = 40003L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 19,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8032),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1600),
                             Description = "Iconic sunglasses with a timeless design.",
                             Name = "Ray-Ban Aviator Sunglasses",
                             PriceCents = 14999m,
                             SKU = 40004L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 20,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8035),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1603),
                             Description = "Luxury leather handbag with modern style.",
                             Name = "Michael Kors Leather Handbag",
                             PriceCents = 29999m,
                             SKU = 40005L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(730, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 21,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8037),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1606),
                             Description = "Powerful hair dryer with multiple heat settings.",
                             Name = "Revlon Hair Dryer",
                             PriceCents = 3999m,
                             SKU = 50001L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 22,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8040),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1608),
                             Description = "Anti-aging cream for daily use.",
                             Name = "Olay Regenerist Cream",
                             PriceCents = 2999m,
                             SKU = 50002L,
                             SalePercent = 5,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 23,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8043),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1611),
                             Description = "Cordless electric shaver with precision blades.",
                             Name = "Philips Electric Shaver",
                             PriceCents = 7999m,
                             SKU = 50003L,
                             SalePercent = 15,
+                            Views = 0m,
                             Warranty = new TimeSpan(730, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 24,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8045),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1614),
                             Description = "Rechargeable toothbrush with multiple brush heads.",
                             Name = "Oral-B Electric Toothbrush",
                             PriceCents = 5999m,
                             SKU = 50004L,
                             SalePercent = 10,
+                            Views = 0m,
                             Warranty = new TimeSpan(730, 0, 0, 0, 0)
                         },
                         new
                         {
                             Id = 25,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8048),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1616),
                             Description = "Moisturizing body wash for soft skin.",
                             Name = "Dove Body Wash",
                             PriceCents = 1299m,
                             SKU = 50005L,
                             SalePercent = 0,
+                            Views = 0m,
                             Warranty = new TimeSpan(365, 0, 0, 0, 0)
                         });
                 });
@@ -836,7 +862,7 @@ namespace Egost.Migrations
                             Id = 1,
                             Active = true,
                             Code = "SUMMER2024",
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8083),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1653),
                             Description = "SUMMER2024",
                             MaxSaleCents = 5000m,
                             Percent = 10
@@ -846,7 +872,7 @@ namespace Egost.Migrations
                             Id = 2,
                             Active = true,
                             Code = "WELCOME10",
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8086),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1656),
                             Description = "WELCOME10",
                             Percent = 10
                         },
@@ -855,7 +881,7 @@ namespace Egost.Migrations
                             Id = 3,
                             Active = true,
                             Code = "HOLIDAY25",
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8089),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1659),
                             Description = "HOLIDAY25",
                             MaxSaleCents = 15000m,
                             Percent = 25
@@ -865,7 +891,7 @@ namespace Egost.Migrations
                             Id = 4,
                             Active = true,
                             Code = "SPRING2024",
-                            CreatedDateTime = new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8123),
+                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1661),
                             Description = "SPRING2024",
                             MaxSaleCents = 8000m,
                             Percent = 15
@@ -930,7 +956,7 @@ namespace Egost.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<byte>("Rate")
+                    b.Property<byte>("Rating")
                         .HasColumnType("tinyint");
 
                     b.Property<string>("ReviewerId")

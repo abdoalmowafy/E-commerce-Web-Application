@@ -90,6 +90,7 @@ namespace Egost.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     SKU = table.Column<long>(type: "bigint", nullable: false),
+                    Views = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     PriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     SalePercent = table.Column<int>(type: "int", nullable: false),
                     Warranty = table.Column<TimeSpan>(type: "time", nullable: false),
@@ -194,7 +195,7 @@ namespace Egost.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AddressLine1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AddressLine2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AddressLine2 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -330,7 +331,7 @@ namespace Egost.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ReviewerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Rate = table.Column<byte>(type: "tinyint", nullable: false),
+                    Rating = table.Column<byte>(type: "tinyint", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -541,7 +542,7 @@ namespace Egost.Migrations
             migrationBuilder.InsertData(
                 table: "Addresses",
                 columns: new[] { "Id", "AddressLine1", "AddressLine2", "City", "Country", "CreatedDateTime", "DeletedDateTime", "PostalCode", "StoreAddress", "Telephone", "UserId" },
-                values: new object[] { 1, "Base", "", "Base", "Base", new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7742), null, "Base", true, "Base", null });
+                values: new object[] { 1, "Base", null, "Base", "Base", new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1327), null, "Base", true, "Base", null });
 
             migrationBuilder.InsertData(
                 table: "Categories",
@@ -567,42 +568,42 @@ namespace Egost.Migrations
                 columns: new[] { "Id", "Active", "Code", "CreatedDateTime", "DeletedDateTime", "Description", "MaxSaleCents", "Percent" },
                 values: new object[,]
                 {
-                    { 1, true, "SUMMER2024", new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8083), null, "SUMMER2024", 5000m, 10 },
-                    { 2, true, "WELCOME10", new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8086), null, "WELCOME10", null, 10 },
-                    { 3, true, "HOLIDAY25", new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8089), null, "HOLIDAY25", 15000m, 25 },
-                    { 4, true, "SPRING2024", new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8123), null, "SPRING2024", 8000m, 15 }
+                    { 1, true, "SUMMER2024", new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1653), null, "SUMMER2024", 5000m, 10 },
+                    { 2, true, "WELCOME10", new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1656), null, "WELCOME10", null, 10 },
+                    { 3, true, "HOLIDAY25", new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1659), null, "HOLIDAY25", 15000m, 25 },
+                    { 4, true, "SPRING2024", new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1661), null, "SPRING2024", 8000m, 15 }
                 });
 
             migrationBuilder.InsertData(
                 table: "Products",
-                columns: new[] { "Id", "CategoryId", "CreatedDateTime", "DeletedDateTime", "Description", "Name", "PriceCents", "SKU", "SalePercent", "Warranty" },
+                columns: new[] { "Id", "CategoryId", "CreatedDateTime", "DeletedDateTime", "Description", "Name", "PriceCents", "SKU", "SalePercent", "Views", "Warranty" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7980), null, "High-quality tennis racket for professionals.", "Wilson Tennis Racket", 8999m, 10001L, 10, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 2, 1, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7983), null, "Top-notch acoustic guitar with a smooth finish.", "Yamaha Acoustic Guitar", 14999m, 10002L, 15, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 3, 1, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7987), null, "Latest EA sports soccer game ps5 edition.", "EA sports FC24 for PS5", 12999m, 10003L, 5, new TimeSpan(14, 0, 0, 0, 0) },
-                    { 4, 1, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7989), null, "Official size soccer ball for all levels.", "Adidas Soccer Ball", 2999m, 10004L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 5, 1, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7992), null, "Complete badminton set for backyard fun.", "Wilson Badminton Set", 4599m, 10005L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 6, 2, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7996), null, "Buildable Star Wars-themed LEGO set.", "LEGO Star Wars Set", 7999m, 20001L, 5, new TimeSpan(183, 0, 0, 0, 0) },
-                    { 7, 2, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(7999), null, "Next-generation gaming console with ultra-high-speed SSD.", "PlayStation 5 Console", 49999m, 20002L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 8, 2, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8001), null, "Powerful gaming console with immersive gameplay.", "Xbox Series X", 49999m, 20003L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 9, 2, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8004), null, "Portable gaming console for versatile play.", "Nintendo Switch", 29999m, 20004L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 10, 2, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8007), null, "Classic board game for family and friends.", "Hasbro Monopoly Game", 1999m, 20005L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 11, 3, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8010), null, "Reliable sewing machine for all skill levels.", "Singer Sewing Machine", 15999m, 30001L, 20, new TimeSpan(1095, 0, 0, 0, 0) },
-                    { 12, 3, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8012), null, "Versatile cutting machine for crafting projects.", "Cricut Maker Machine", 39999m, 30002L, 10, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 13, 3, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8015), null, "High-quality colored pencils for artists.", "Faber-Castell Colored Pencils", 2499m, 30003L, 5, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 14, 3, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8018), null, "Alcohol-based markers for smooth blending.", "Prismacolor Markers", 3999m, 30004L, 10, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 15, 3, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8021), null, "Premium watercolor paints for artists.", "Schmincke Watercolors", 5999m, 30005L, 5, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 16, 4, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8023), null, "Classic straight-fit jeans for men.", "Levi's Denim Jeans", 4999m, 40001L, 10, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 17, 4, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8026), null, "Comfortable and stylish sneakers for daily wear.", "Nike Air Max Sneakers", 8999m, 40002L, 15, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 18, 4, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8029), null, "Soft cotton T-shirt with modern fit.", "Calvin Klein T-shirt", 1999m, 40003L, 0, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 19, 4, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8032), null, "Iconic sunglasses with a timeless design.", "Ray-Ban Aviator Sunglasses", 14999m, 40004L, 10, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 20, 4, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8035), null, "Luxury leather handbag with modern style.", "Michael Kors Leather Handbag", 29999m, 40005L, 5, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 21, 5, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8037), null, "Powerful hair dryer with multiple heat settings.", "Revlon Hair Dryer", 3999m, 50001L, 10, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 22, 5, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8040), null, "Anti-aging cream for daily use.", "Olay Regenerist Cream", 2999m, 50002L, 5, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 23, 5, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8043), null, "Cordless electric shaver with precision blades.", "Philips Electric Shaver", 7999m, 50003L, 15, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 24, 5, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8045), null, "Rechargeable toothbrush with multiple brush heads.", "Oral-B Electric Toothbrush", 5999m, 50004L, 10, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 25, 5, new DateTime(2024, 8, 21, 15, 12, 1, 29, DateTimeKind.Local).AddTicks(8048), null, "Moisturizing body wash for soft skin.", "Dove Body Wash", 1299m, 50005L, 0, new TimeSpan(365, 0, 0, 0, 0) }
+                    { 1, 1, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1514), null, "High-quality tennis racket for professionals.", "Wilson Tennis Racket", 8999m, 10001L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 2, 1, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1518), null, "Top-notch acoustic guitar with a smooth finish.", "Yamaha Acoustic Guitar", 14999m, 10002L, 15, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 3, 1, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1521), null, "Latest EA sports soccer game ps5 edition.", "EA sports FC24 for PS5", 12999m, 10003L, 5, 0m, new TimeSpan(14, 0, 0, 0, 0) },
+                    { 4, 1, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1523), null, "Official size soccer ball for all levels.", "Adidas Soccer Ball", 2999m, 10004L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 5, 1, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1526), null, "Complete badminton set for backyard fun.", "Wilson Badminton Set", 4599m, 10005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 6, 2, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1530), null, "Buildable Star Wars-themed LEGO set.", "LEGO Star Wars Set", 7999m, 20001L, 5, 0m, new TimeSpan(183, 0, 0, 0, 0) },
+                    { 7, 2, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1532), null, "Next-generation gaming console with ultra-high-speed SSD.", "PlayStation 5 Console", 49999m, 20002L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 8, 2, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1535), null, "Powerful gaming console with immersive gameplay.", "Xbox Series X", 49999m, 20003L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 9, 2, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1538), null, "Portable gaming console for versatile play.", "Nintendo Switch", 29999m, 20004L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 10, 2, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1541), null, "Classic board game for family and friends.", "Hasbro Monopoly Game", 1999m, 20005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 11, 3, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1543), null, "Reliable sewing machine for all skill levels.", "Singer Sewing Machine", 15999m, 30001L, 20, 0m, new TimeSpan(1095, 0, 0, 0, 0) },
+                    { 12, 3, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1546), null, "Versatile cutting machine for crafting projects.", "Cricut Maker Machine", 39999m, 30002L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 13, 3, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1583), null, "High-quality colored pencils for artists.", "Faber-Castell Colored Pencils", 2499m, 30003L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 14, 3, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1586), null, "Alcohol-based markers for smooth blending.", "Prismacolor Markers", 3999m, 30004L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 15, 3, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1589), null, "Premium watercolor paints for artists.", "Schmincke Watercolors", 5999m, 30005L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 16, 4, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1592), null, "Classic straight-fit jeans for men.", "Levi's Denim Jeans", 4999m, 40001L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 17, 4, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1595), null, "Comfortable and stylish sneakers for daily wear.", "Nike Air Max Sneakers", 8999m, 40002L, 15, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 18, 4, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1597), null, "Soft cotton T-shirt with modern fit.", "Calvin Klein T-shirt", 1999m, 40003L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 19, 4, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1600), null, "Iconic sunglasses with a timeless design.", "Ray-Ban Aviator Sunglasses", 14999m, 40004L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 20, 4, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1603), null, "Luxury leather handbag with modern style.", "Michael Kors Leather Handbag", 29999m, 40005L, 5, 0m, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 21, 5, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1606), null, "Powerful hair dryer with multiple heat settings.", "Revlon Hair Dryer", 3999m, 50001L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 22, 5, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1608), null, "Anti-aging cream for daily use.", "Olay Regenerist Cream", 2999m, 50002L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 23, 5, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1611), null, "Cordless electric shaver with precision blades.", "Philips Electric Shaver", 7999m, 50003L, 15, 0m, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 24, 5, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1614), null, "Rechargeable toothbrush with multiple brush heads.", "Oral-B Electric Toothbrush", 5999m, 50004L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 25, 5, new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1616), null, "Moisturizing body wash for soft skin.", "Dove Body Wash", 1299m, 50005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) }
                 });
 
             migrationBuilder.CreateIndex(

@@ -126,6 +126,13 @@ namespace Egost.Controllers
                 TempData["fail"] = "Product not found!";
                 return Redirect("/");
             }
+
+            // Increase product views
+            Product.Views++;
+            _db.Products.Update(Product);
+            _db.SaveChanges();
+
+            // product media
             string path = Path.Combine("wwwroot\\Media\\ProductMedia\\", Product.Id.ToString());
             string[] fileNames = Directory.GetFiles(path);
             List<string> fileNamesOnly = fileNames.Select(filePath => Path.GetFileName(filePath)).ToList();
@@ -216,7 +223,7 @@ namespace Egost.Controllers
                 Review review = new()
                 {
                     Reviewer = user,
-                    Rate = Rate,
+                    Rating = Rate,
                     Text = Text,
                 };
                 _db.Reviews.Add(review);

@@ -7,7 +7,7 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         [Required] public User Reviewer { get; set; }
-        [Required][Range(0,5)] public byte Rate { get; set; }
+        [Required][Range(1,5)] public byte Rating { get; set; }
         [DataType(DataType.MultilineText)] public string Text { get; set; }
         [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         [DataType(DataType.DateTime)] public DateTime? DeletedDateTime { get; set; }

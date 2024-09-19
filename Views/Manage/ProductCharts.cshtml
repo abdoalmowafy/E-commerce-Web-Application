@@ -1,0 +1,99 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Product Charts";
+    var totalSalesPer = 100.0 * Model.totalSales / (Model.SKU + Model.totalSales);
+    var ReturnPer = 100.0 * Model.returnCount / (Model.SKU + Model.totalSales);
+    var stockPer = 100.0 * Model.SKU / (Model.SKU + Model.totalSales);
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-5">Metrics for [@Model.Id - @Model.Name]</h2>
+    <ul>
+        <li>Total Revenue = <strong>@string.Format("{0:N}", Model.revenue)</strong> EGP</li>
+        <li>Cart Count = <strong>@Model.cartCount</strong> carts</li>
+        <li>Wishlist Count = <strong>@Model.wishlistCount</strong> user wishlists</li>
+        <li>Views = <strong>@Model.Views</strong> view</li>
+    </ul>
+    <div class="row m-5">
+        <!-- Return Rate Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sales - Returns - Stock</h5>
+                    <canvas id="salesReturnsStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Rating Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ratings</h5>
+                    <canvas id="RatingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+
+        // Total Sales Pie Chart
+        var totalSalesCtx = document.getElementById('salesReturnsStockChart').getContext('2d');
+        new Chart(totalSalesCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Sales', 'Returns', 'Stock'],
+                datasets: [{
+                    label: 'Sales - Returns - Stock',
+                    data: [productData.totalSales, productData.returnCount, productData.SKU],
+                    backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Ratings bar Chart
+        var RatingsCtx = document.getElementById('RatingsChart').getContext('2d');
+        new Chart(RatingsCtx, {
+            type: 'bar',
+            data: {
+                labels: [1,2,3,4,5],
+                datasets: [{
+                    label: 'Rating',
+                    data: productData.Ratings,
+                    backgroundColor: '#2196f3'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+            
+    </script>
+}
