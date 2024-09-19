@@ -16,12 +16,12 @@ This project is a comprehensive web store application built with ASP.NET Core (M
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/abdoalmowafy/Egost.git
+    git clone https://github.com/abdoalmowafy/E-commerce-Web-Application
     ```
 
 2. **Navigate to the project directory**:
     ```bash
-    cd Egost
+    cd E-commerce-Web-Application
     ```
 
 3. **Restore dependencies**:
