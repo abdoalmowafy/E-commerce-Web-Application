@@ -15,7 +15,7 @@ namespace Egost.Models
         [Required] public bool StoreAddress { get; set; } = false;
         [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         [DataType(DataType.DateTime)] public DateTime? DeletedDateTime { get; set; }
-        public ICollection<EditHistory> EditsHistory { get; set; }
+        public ICollection<EditHistory> EditsHistory { get; set; } = [];
         
         [NotMapped] public static Address Base
         {

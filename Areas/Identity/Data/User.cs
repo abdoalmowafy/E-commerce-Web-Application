@@ -18,5 +18,5 @@ public class User : IdentityUser
     public ICollection<Order> Orders { get; set; }
     public Cart Cart { get; set; }
     [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
-    public ICollection<EditHistory> EditsHistory { get; set; }
+    public ICollection<EditHistory> EditsHistory { get; set; } = [];
 }

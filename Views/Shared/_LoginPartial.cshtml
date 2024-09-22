@@ -1,11 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Egost.Areas.Identity.Data
 
-@inject SignInManager<Egost.Areas.Identity.Data.User> SignInManager
-@inject UserManager<Egost.Areas.Identity.Data.User> UserManager
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 
 @if (SignInManager.IsSignedIn(User))
 {
-    Egost.Areas.Identity.Data.User user = UserManager.GetUserAsync(User).Result!;
+    User user = UserManager.GetUserAsync(User).Result!;
     <li class="nav-item dropdown">
         <a asp-area="" class="nav-link text-white dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
             Hello!

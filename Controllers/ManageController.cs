@@ -115,7 +115,7 @@ namespace Egost.Controllers
 
                 // Update Product data in Database
                 _db.Products.Update(obj);
-                _db.SaveChanges();
+                _db.SaveChanges(_db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name));
 
                 TempData["success"] = "Product modified successfully!";
                 return RedirectToAction("Home", "Store");
@@ -141,7 +141,7 @@ namespace Egost.Controllers
             // Marj product as deleted
             product.DeletedDateTime = DateTime.Now;
             _db.Products.Update(product);
-            _db.SaveChanges();
+            _db.SaveChanges(_db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name));
 
             TempData["success"] = "Product deleted successfully!";
             return RedirectToAction("Home", "Store");
@@ -162,7 +162,7 @@ namespace Egost.Controllers
             // Mark product as not deleted
             product.DeletedDateTime = null;
             _db.Products.Update(product);
-            _db.SaveChanges();
+            _db.SaveChanges(_db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name));
 
             TempData["success"] = "Product recovered successfully!";
             return RedirectToAction("Home", "Store");
@@ -358,7 +358,7 @@ namespace Egost.Controllers
             if (ModelState.IsValid)
             {
                 _db.Addresses.Update(storeAddress);
-                _db.SaveChanges();
+                _db.SaveChanges(_db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name));
                 TempData["info"] = "Address Updated Successfully!";
                 return RedirectToAction(nameof(IndexStoreAddresses));
             }

@@ -11,7 +11,7 @@ namespace Egost.Models
         [ForeignKey("UserId")] public User User { get; set; }
         public string? TransporterId { get; set; }
         [ForeignKey("TransporterId")] public User? Transporter { get; set; }
-        [Required] public ICollection<OrderProduct> OrderProducts { get; set; }
+        [Required] public ICollection<OrderProduct> OrderProducts { get; set; } = [];
         public PromoCode? PromoCode { get; set; }
         [Required][DataType(DataType.Currency)] public ulong TotalCents { get; set; }
         [Required] public string Currency { get; set; } = "EGP";

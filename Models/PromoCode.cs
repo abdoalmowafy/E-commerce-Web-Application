@@ -12,6 +12,6 @@ namespace Egost.Models
         [Required] public bool Active { get; set; } = true;
         [Required] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         public DateTime? DeletedDateTime { get; set; }
-        public ICollection<EditHistory> EditsHistory { get; set; }
+        public ICollection<EditHistory> EditsHistory { get; set; } = [];
     }
 }

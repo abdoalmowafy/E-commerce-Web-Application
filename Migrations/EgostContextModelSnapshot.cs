@@ -162,7 +162,7 @@ namespace Egost.Migrations
                             AddressLine1 = "Base",
                             City = "Base",
                             Country = "Base",
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1327),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(500),
                             PostalCode = "Base",
                             StoreAddress = true,
                             Telephone = "Base"
@@ -331,6 +331,9 @@ namespace Egost.Migrations
                     b.Property<int?>("ReviewId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
@@ -342,6 +345,8 @@ namespace Egost.Migrations
                     b.HasIndex("PromoCodeId");
 
                     b.HasIndex("ReviewId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("EditHistories");
                 });
@@ -498,7 +503,7 @@ namespace Egost.Migrations
                         {
                             Id = 1,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1514),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(706),
                             Description = "High-quality tennis racket for professionals.",
                             Name = "Wilson Tennis Racket",
                             PriceCents = 8999m,
@@ -511,7 +516,7 @@ namespace Egost.Migrations
                         {
                             Id = 2,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1518),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(710),
                             Description = "Top-notch acoustic guitar with a smooth finish.",
                             Name = "Yamaha Acoustic Guitar",
                             PriceCents = 14999m,
@@ -524,7 +529,7 @@ namespace Egost.Migrations
                         {
                             Id = 3,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1521),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(714),
                             Description = "Latest EA sports soccer game ps5 edition.",
                             Name = "EA sports FC24 for PS5",
                             PriceCents = 12999m,
@@ -537,7 +542,7 @@ namespace Egost.Migrations
                         {
                             Id = 4,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1523),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(717),
                             Description = "Official size soccer ball for all levels.",
                             Name = "Adidas Soccer Ball",
                             PriceCents = 2999m,
@@ -550,7 +555,7 @@ namespace Egost.Migrations
                         {
                             Id = 5,
                             CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1526),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(720),
                             Description = "Complete badminton set for backyard fun.",
                             Name = "Wilson Badminton Set",
                             PriceCents = 4599m,
@@ -563,7 +568,7 @@ namespace Egost.Migrations
                         {
                             Id = 6,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1530),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(723),
                             Description = "Buildable Star Wars-themed LEGO set.",
                             Name = "LEGO Star Wars Set",
                             PriceCents = 7999m,
@@ -576,7 +581,7 @@ namespace Egost.Migrations
                         {
                             Id = 7,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1532),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(726),
                             Description = "Next-generation gaming console with ultra-high-speed SSD.",
                             Name = "PlayStation 5 Console",
                             PriceCents = 49999m,
@@ -589,7 +594,7 @@ namespace Egost.Migrations
                         {
                             Id = 8,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1535),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(729),
                             Description = "Powerful gaming console with immersive gameplay.",
                             Name = "Xbox Series X",
                             PriceCents = 49999m,
@@ -602,7 +607,7 @@ namespace Egost.Migrations
                         {
                             Id = 9,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1538),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(731),
                             Description = "Portable gaming console for versatile play.",
                             Name = "Nintendo Switch",
                             PriceCents = 29999m,
@@ -615,7 +620,7 @@ namespace Egost.Migrations
                         {
                             Id = 10,
                             CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1541),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(734),
                             Description = "Classic board game for family and friends.",
                             Name = "Hasbro Monopoly Game",
                             PriceCents = 1999m,
@@ -628,7 +633,7 @@ namespace Egost.Migrations
                         {
                             Id = 11,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1543),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(737),
                             Description = "Reliable sewing machine for all skill levels.",
                             Name = "Singer Sewing Machine",
                             PriceCents = 15999m,
@@ -641,7 +646,7 @@ namespace Egost.Migrations
                         {
                             Id = 12,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1546),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(743),
                             Description = "Versatile cutting machine for crafting projects.",
                             Name = "Cricut Maker Machine",
                             PriceCents = 39999m,
@@ -654,7 +659,7 @@ namespace Egost.Migrations
                         {
                             Id = 13,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1583),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(746),
                             Description = "High-quality colored pencils for artists.",
                             Name = "Faber-Castell Colored Pencils",
                             PriceCents = 2499m,
@@ -667,7 +672,7 @@ namespace Egost.Migrations
                         {
                             Id = 14,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1586),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(749),
                             Description = "Alcohol-based markers for smooth blending.",
                             Name = "Prismacolor Markers",
                             PriceCents = 3999m,
@@ -680,7 +685,7 @@ namespace Egost.Migrations
                         {
                             Id = 15,
                             CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1589),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(766),
                             Description = "Premium watercolor paints for artists.",
                             Name = "Schmincke Watercolors",
                             PriceCents = 5999m,
@@ -693,7 +698,7 @@ namespace Egost.Migrations
                         {
                             Id = 16,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1592),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(769),
                             Description = "Classic straight-fit jeans for men.",
                             Name = "Levi's Denim Jeans",
                             PriceCents = 4999m,
@@ -706,7 +711,7 @@ namespace Egost.Migrations
                         {
                             Id = 17,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1595),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(772),
                             Description = "Comfortable and stylish sneakers for daily wear.",
                             Name = "Nike Air Max Sneakers",
                             PriceCents = 8999m,
@@ -719,7 +724,7 @@ namespace Egost.Migrations
                         {
                             Id = 18,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1597),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(775),
                             Description = "Soft cotton T-shirt with modern fit.",
                             Name = "Calvin Klein T-shirt",
                             PriceCents = 1999m,
@@ -732,7 +737,7 @@ namespace Egost.Migrations
                         {
                             Id = 19,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1600),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(778),
                             Description = "Iconic sunglasses with a timeless design.",
                             Name = "Ray-Ban Aviator Sunglasses",
                             PriceCents = 14999m,
@@ -745,7 +750,7 @@ namespace Egost.Migrations
                         {
                             Id = 20,
                             CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1603),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(781),
                             Description = "Luxury leather handbag with modern style.",
                             Name = "Michael Kors Leather Handbag",
                             PriceCents = 29999m,
@@ -758,7 +763,7 @@ namespace Egost.Migrations
                         {
                             Id = 21,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1606),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(783),
                             Description = "Powerful hair dryer with multiple heat settings.",
                             Name = "Revlon Hair Dryer",
                             PriceCents = 3999m,
@@ -771,7 +776,7 @@ namespace Egost.Migrations
                         {
                             Id = 22,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1608),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(786),
                             Description = "Anti-aging cream for daily use.",
                             Name = "Olay Regenerist Cream",
                             PriceCents = 2999m,
@@ -784,7 +789,7 @@ namespace Egost.Migrations
                         {
                             Id = 23,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1611),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(789),
                             Description = "Cordless electric shaver with precision blades.",
                             Name = "Philips Electric Shaver",
                             PriceCents = 7999m,
@@ -797,7 +802,7 @@ namespace Egost.Migrations
                         {
                             Id = 24,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1614),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(792),
                             Description = "Rechargeable toothbrush with multiple brush heads.",
                             Name = "Oral-B Electric Toothbrush",
                             PriceCents = 5999m,
@@ -810,7 +815,7 @@ namespace Egost.Migrations
                         {
                             Id = 25,
                             CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1616),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(795),
                             Description = "Moisturizing body wash for soft skin.",
                             Name = "Dove Body Wash",
                             PriceCents = 1299m,
@@ -862,7 +867,7 @@ namespace Egost.Migrations
                             Id = 1,
                             Active = true,
                             Code = "SUMMER2024",
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1653),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(832),
                             Description = "SUMMER2024",
                             MaxSaleCents = 5000m,
                             Percent = 10
@@ -872,7 +877,7 @@ namespace Egost.Migrations
                             Id = 2,
                             Active = true,
                             Code = "WELCOME10",
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1656),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(835),
                             Description = "WELCOME10",
                             Percent = 10
                         },
@@ -881,7 +886,7 @@ namespace Egost.Migrations
                             Id = 3,
                             Active = true,
                             Code = "HOLIDAY25",
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1659),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(838),
                             Description = "HOLIDAY25",
                             MaxSaleCents = 15000m,
                             Percent = 25
@@ -891,7 +896,7 @@ namespace Egost.Migrations
                             Id = 4,
                             Active = true,
                             Code = "SPRING2024",
-                            CreatedDateTime = new DateTime(2024, 9, 19, 17, 0, 34, 827, DateTimeKind.Local).AddTicks(1661),
+                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(841),
                             Description = "SPRING2024",
                             MaxSaleCents = 8000m,
                             Percent = 15
@@ -953,7 +958,7 @@ namespace Egost.Migrations
                     b.Property<DateTime?>("DeletedDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<byte>("Rating")
@@ -1201,25 +1206,33 @@ namespace Egost.Migrations
                 {
                     b.HasOne("Egost.Models.Address", null)
                         .WithMany("EditsHistory")
-                        .HasForeignKey("AddressId");
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Egost.Areas.Identity.Data.User", "Editor")
-                        .WithMany("EditsHistory")
+                        .WithMany()
                         .HasForeignKey("EditorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Egost.Models.Product", null)
                         .WithMany("EditsHistory")
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Egost.Models.PromoCode", null)
                         .WithMany("EditsHistory")
-                        .HasForeignKey("PromoCodeId");
+                        .HasForeignKey("PromoCodeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Egost.Models.Review", null)
                         .WithMany("EditsHistory")
                         .HasForeignKey("ReviewId");
+
+                    b.HasOne("Egost.Areas.Identity.Data.User", null)
+                        .WithMany("EditsHistory")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Editor");
                 });
@@ -1276,7 +1289,7 @@ namespace Egost.Migrations
                     b.HasOne("Egost.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1309,15 +1322,19 @@ namespace Egost.Migrations
 
             modelBuilder.Entity("Egost.Models.Review", b =>
                 {
-                    b.HasOne("Egost.Models.Product", null)
+                    b.HasOne("Egost.Models.Product", "Product")
                         .WithMany("Reviews")
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Egost.Areas.Identity.Data.User", "Reviewer")
                         .WithMany()
                         .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Product");
 
                     b.Navigation("Reviewer");
                 });

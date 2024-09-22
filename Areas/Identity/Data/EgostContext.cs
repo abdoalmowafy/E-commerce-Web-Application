@@ -43,7 +43,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             }
         }
 
-        var DeletedUserEntries = UserEntries.Where(e => e.State == EntityState.Deleted);
+        var DeletedUserEntries = UserEntries.Where(e => e.State == EntityState.Deleted).ToList();
         foreach (var entry in DeletedUserEntries)
         {
             var user = entry.Entity;
@@ -88,24 +88,113 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
         return await base.SaveChangesAsync(cancellationToken);
     }
 
+    public int SaveChanges(User currentUser)
+    {
+        var entries = ChangeTracker.Entries().ToList();
+        var editedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).ToList();
+
+        foreach (var entry in editedEntries)
+        {
+            var editedObj = entry.Entity;
+            var entityType = editedObj.GetType();
+            var editsHistoryProperty = entityType.GetProperty("EditsHistory");
+
+            if (editsHistoryProperty != null)
+            {
+                // Get the EditsHistory collection
+                var editsHistory = (ICollection<EditHistory>)editsHistoryProperty.GetValue(editedObj);
+
+                foreach (var prop in entry.Properties.Where(p => !Equals(p.OriginalValue, p.CurrentValue) && IsSimpleType(p.Metadata.ClrType)).ToList())
+                {
+                    var edit = new EditHistory
+                    {
+                        Editor = currentUser,
+                        Field = prop.Metadata.Name,
+                        OldData = prop.OriginalValue?.ToString(),
+                        NewData = prop.CurrentValue?.ToString()
+                    };
+
+                    editsHistory.Add(edit);
+                    EditHistories.Add(edit);
+                }
+            }
+        }
+
+        return base.SaveChanges();
+    }
+
+    private static bool IsSimpleType(Type type) =>  type.IsPrimitive || // For basic types like int, byte, etc.
+                                                    type == typeof(string) ||
+                                                    type == typeof(decimal) ||
+                                                    type == typeof(DateTime) ||
+                                                    type == typeof(Guid) ||
+                                                    type == typeof(TimeSpan) ||
+                                                    type == typeof(DateTimeOffset) ||
+                                                    type.IsEnum;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-
         Seed(builder);
 
-        // Many Users has many wishlist of Products
+        // ---User relations---
+        // One User has many Addresses
+        builder.Entity<User>()
+            .HasMany(u => u.Addresses)
+            .WithOne();
+
+        // Many Users has many product wishlist
         builder.Entity<User>()
             .HasMany(u => u.WishList)
             .WithMany(p => p.WishlistUsers);
 
         // One User has many Orders
-        builder.Entity<Order>()
-            .HasOne(o => o.User)
-            .WithMany(u => u.Orders)
+        builder.Entity<User>()
+            .HasMany(u => u.Orders)
+            .WithOne(o => o.User)
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // One User has many EditsHistory
+        builder.Entity<User>()
+            .HasMany(u => u.EditsHistory)
+            .WithOne()
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // ---Address relations---
+        // One Address has many EditsHistory
+        builder.Entity<Address>()
+            .HasMany(address => address.EditsHistory)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // --- Cart relations---
+        // One Cart has many CartProducts
+        builder.Entity<Cart>()
+            .HasMany(c => c.CartProducts)
+            .WithOne();
+
+        // One PromoCode has many Carts
+        builder.Entity<Cart>()
+            .HasOne(c => c.PromoCode)
+            .WithMany();
+
+
+
+        // --- CartProduct relations---
+        // One Product has many CartProducts
+        builder.Entity<CartProduct>()
+            .HasOne(cp => cp.Product)
+            .WithMany();
+
+
+
+        // --- Order relations
         // One Transporter has many Orders
         builder.Entity<Order>()
             .HasOne(o => o.Transporter)
@@ -118,58 +207,102 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             .HasMany(o => o.OrderProducts)
             .WithOne();
 
-        // One Cart has many CartProducts
-        builder.Entity<Cart>()
-            .HasMany(c => c.CartProducts)
-            .WithOne();
-
-        // One User has many Addresses
-        builder.Entity<User>()
-            .HasMany(u => u.Addresses)
-            .WithOne();
-
-        //// One User has many EditHistories
-        //builder.Entity<User>()
-        //    .HasMany(u => u.EditsHistory)
-        //    .WithOne();
-
-        //// One Review has many EditHistories
-        //builder.Entity<Review>()
-        //    .HasMany(r => r.EditsHistory)
-        //    .WithOne();
-
-        // One Category has many Products
-        builder.Entity<Product>()
-            .HasOne(p => p.Category)
-            .WithMany(c => c.Products)
-            .HasForeignKey(p => p.CategoryId);
-
-        // One Product has many Reviews
-        builder.Entity<Product>()
-            .HasMany(p => p.Reviews)
-            .WithOne();
-
-        // Many Order has one Address
-        builder.Entity<Order>()
-            .HasOne(o => o.Address)
-            .WithMany();
-
-        // Many Order has one PromoCode
+        // One PromoCode has many Orders
         builder.Entity<Order>()
             .HasOne(o => o.PromoCode)
             .WithMany();
 
-        // One Address has many EditHistories
-        builder.Entity<Address>()
-            .HasMany(a => a.EditsHistory)
+        // Many Orders has One Address
+        builder.Entity<Order>()
+            .HasOne(o => o.Address)
+            .WithMany();
+
+
+
+        // ---OrderProduct relations---
+        // One Product has Many OrderProducts
+        builder.Entity<OrderProduct>()
+            .HasOne(op => op.Product)
+            .WithMany();
+
+
+
+        // ---Product relations---
+        // One Category has many Products
+        builder.Entity<Product>()
+            .HasOne(p => p.Category)
+            .WithMany(c => c.Products)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One Product has many Reviews
+        builder.Entity<Product>()
+            .HasMany(p => p.Reviews)
+            .WithOne(r => r.Product)
+            .HasForeignKey(r => r.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One Product has many EditsHistory
+        builder.Entity<Product>()
+            .HasMany(p => p.EditsHistory)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // ---PromoCode relations---
+        // One PromoCode has many EditHistories
+        builder.Entity<PromoCode>()
+            .HasMany(pc => pc.EditsHistory)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // ---ReturnProductOrder relations---
+        // One Transporter has many ReturnProductOrders
+        builder.Entity<ReturnProductOrder>()
+            .HasOne(rpo => rpo.Transporter)
+            .WithMany();
+
+        // One Order has many ReturnProductOrders
+        builder.Entity<ReturnProductOrder>()
+            .HasOne(rpo => rpo.Order)
+            .WithMany();
+
+        // One OrderProduct has many ReturnProductOrders
+        builder.Entity<ReturnProductOrder>()
+            .HasOne(rpo => rpo.OrderProduct)
+            .WithMany();
+
+
+
+        // ---Review relations---
+        // One Reviewer has many Reviews
+        builder.Entity<Review>()
+            .HasOne(rev => rev.Reviewer)
+            .WithMany();
+
+        // One Review has many EditHistories
+        builder.Entity<Review>()
+            .HasMany(r => r.EditsHistory)
             .WithOne();
 
+
+
+        // ---Search relations---
         // One User has many Searches
         builder.Entity<Search>()
             .HasOne(s => s.User)
             .WithMany();
+
+        // One Category has many Searches
+        builder.Entity<Search>()
+            .HasOne(s => s.Category)
+            .WithMany();
     }
-    private void Seed(ModelBuilder builder)
+
+    private static void Seed(ModelBuilder builder)
     {
         // Seed Base Address
         builder.Entity<Address>().HasData(Address.Base);
