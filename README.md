@@ -5,23 +5,23 @@ This project is a comprehensive web store application built with ASP.NET Core (M
 
 ## Features
 
-- **Identity Framework**: Utilizes a modified User model to manage user authentication and authorization.
-- **External Logins**: Supports authentication through Facebook, Google, and Microsoft accounts.
-- **Payment Gateway**: Integrates with Paymob to support credit card and mobile wallet payments.
-- **Manager Interface**: A control panel for managers to add, edit, or delete products and orders. It also includes visual charts to track each product's performance.
-- **Job Application Interface**: Allows candidates to apply for positions such as "Moderator", "Transporter", etc., by submitting their CVs. (Soon!)
-- **Role-Based Interfaces**: Provides specialized interfaces tailored to each role within the store.
+- **Identity Framework**: Built a full-stack web app using identity framework with modified User model.
+- **External Logins**: Supports external logins from Facebook, Google and Microsoft.
+- **Payment Gateway**: Supports credit card and mobile wallet payments through paymob payment gateway.
+- **Tailored View**:  Tailored view for each role and manager interface (control panel) to add, edit or delete products and
+orders, and visual charts to track each product.
+- **Job Application Interface**: Supports applying to job interface to accept candidates CVs to work at the store.
 
 ## Installation
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/abdoalmowafy/Egost.git
+    git clone https://github.com/abdoalmowafy/E-commerce-Web-Application
     ```
 
 2. **Navigate to the project directory**:
     ```bash
-    cd Egost
+    cd E-commerce-Web-Application
     ```
 
 3. **Restore dependencies**:
