@@ -1,19 +1,18 @@
 using Egost.Areas.Identity.Data;
+using Egost.Data;
 using Egost.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.IdentityModel.Tokens;
 using System.Threading.Tasks;
 
-public class AddAddressModel : PageModel
+public class AddAddressModel(UserManager<User> userManager, EgostContext db) : PageModel
 {
-    private readonly UserManager<User> _userManager;
+    private readonly UserManager<User> _userManager = userManager;
+    private readonly EgostContext _db = db;
 
-    public AddAddressModel(UserManager<User> userManager)
-    {
-        _userManager = userManager;
-    }
 
     [BindProperty]
     public Address Address { get; set; }
@@ -37,6 +36,9 @@ public class AddAddressModel : PageModel
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
+        await _db.Addresses.AddAsync(Address);
+        await _db.SaveChangesAsync();
+        if (user.Addresses.IsNullOrEmpty()) user.Addresses = [];
         user.Addresses.Add(Address);
         await _userManager.UpdateAsync(user);
 
