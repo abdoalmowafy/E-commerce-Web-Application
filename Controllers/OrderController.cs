@@ -17,7 +17,6 @@ namespace Egost.Controllers
         private readonly int IntegrationId = int.Parse(configuration.GetSection("Paymob")["IntegrationId"]!);
         private readonly int IframeId = int.Parse(configuration.GetSection("Paymob")["Iframe1Id"]!);
 
-        private static readonly string[] availablePaymentMethods = ["CreditCard", "MobileWallet", "COD"];
 
         [Authorize]
         [Route("Order")]
@@ -67,7 +66,7 @@ namespace Egost.Controllers
                 cartProducts.Any(cp => cp.Quantity < 1 || cp.Product.SKU < cp.Quantity || cp.Product.DeletedDateTime.HasValue) ||
                 (promo != null && (promo.DeletedDateTime.HasValue || !promo.Active)) || // Possible promocode errors!
                 address == null || (!address.StoreAddress && !user.Addresses.Contains(address)) || // Possible input errors!
-                !availablePaymentMethods.Contains(PaymentMethod))
+                !Enum.TryParse<PaymentMethod>(PaymentMethod, out var parsedPaymentMethod))
             {
                 TempData["fail"] = "Something went wrong!";
                 return RedirectToAction("Index", "Cart");

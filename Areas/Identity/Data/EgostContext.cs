@@ -2,16 +2,19 @@
 using Egost.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Drawing;
+using System.Reflection.Emit;
 
 namespace Egost.Data;
 
 public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbContext<User>(options)
 {
+    public DbSet<DeleteHistory> DeletesHistory { get; set; }
     public DbSet<EditHistory> EditHistories { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Category> Categories { get; set; }
@@ -52,7 +55,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             foreach (var order in UserOrders)
             {
                 if ( order.DeletedDateTime == null && order.DeliveryDateTime == null 
-                    && (order.PaymentMethod == "COD" || !order.Processed))
+                    && (order.PaymentMethod == PaymentMethod.COD || !order.Processed))
                 {
                     foreach (var orderProduct in order.OrderProducts)
                     {
@@ -137,22 +140,34 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
         base.OnModelCreating(builder);
         Seed(builder);
 
-        // ---User relations---
+        // --- User relations ---
+        // Use Gender Name not Value
+        builder.Entity<User>()
+        .Property(u => u.Gender)
+        .HasConversion<string>();
+
         // One User has many Addresses
         builder.Entity<User>()
             .HasMany(u => u.Addresses)
-            .WithOne();
+            .WithOne()
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // Many Users has many product wishlist
+        // Many Users have many products in their wishlist
         builder.Entity<User>()
             .HasMany(u => u.WishList)
-            .WithMany(p => p.WishlistUsers);
+            .WithMany();
 
         // One User has many Orders
         builder.Entity<User>()
             .HasMany(u => u.Orders)
             .WithOne(o => o.User)
             .HasForeignKey(o => o.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One User has many ReturnProductOrders
+        builder.Entity<User>()
+            .HasMany(u => u.ReturnProductOrders)
+            .WithOne()
             .OnDelete(DeleteBehavior.Restrict);
 
         // One User has many EditsHistory
@@ -162,39 +177,40 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---Address relations---
+        // --- Address relations ---
         // One Address has many EditsHistory
         builder.Entity<Address>()
             .HasMany(address => address.EditsHistory)
             .WithOne()
             .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // --- Cart relations---
+        // --- Cart relations ---
         // One Cart has many CartProducts
         builder.Entity<Cart>()
             .HasMany(c => c.CartProducts)
-            .WithOne();
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
 
         // One PromoCode has many Carts
         builder.Entity<Cart>()
             .HasOne(c => c.PromoCode)
             .WithMany();
 
-
-
-        // --- CartProduct relations---
+        // --- CartProduct relations ---
         // One Product has many CartProducts
         builder.Entity<CartProduct>()
             .HasOne(cp => cp.Product)
             .WithMany();
 
+        // --- EditHistory relations ---
+        // One Editor commits many EditsHistory
+        builder.Entity<EditHistory>()
+            .HasOne(eh => eh.Editor)
+            .WithMany()
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
 
-
-        // --- Order relations
+        // --- Order relations ---
         // One Transporter has many Orders
         builder.Entity<Order>()
             .HasOne(o => o.Transporter)
@@ -205,29 +221,33 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
         // One Order has many OrderProducts
         builder.Entity<Order>()
             .HasMany(o => o.OrderProducts)
-            .WithOne();
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        //// Use PaymentMethod Name not Value
+        builder.Entity<Order>()
+        .Property(o => o.PaymentMethod)
+        .HasConversion<string>();
 
         // One PromoCode has many Orders
         builder.Entity<Order>()
             .HasOne(o => o.PromoCode)
             .WithMany();
 
-        // Many Orders has One Address
+        // Many Orders have One Address
         builder.Entity<Order>()
             .HasOne(o => o.Address)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---OrderProduct relations---
+        // --- OrderProduct relations ---
         // One Product has Many OrderProducts
         builder.Entity<OrderProduct>()
             .HasOne(op => op.Product)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---Product relations---
+        // --- Product relations ---
         // One Category has many Products
         builder.Entity<Product>()
             .HasOne(p => p.Category)
@@ -240,7 +260,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             .HasMany(p => p.Reviews)
             .WithOne(r => r.Product)
             .HasForeignKey(r => r.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // One Product has many EditsHistory
         builder.Entity<Product>()
@@ -248,59 +268,67 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
             .WithOne()
             .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---PromoCode relations---
+        // --- PromoCode relations ---
         // One PromoCode has many EditHistories
         builder.Entity<PromoCode>()
             .HasMany(pc => pc.EditsHistory)
             .WithOne()
             .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---ReturnProductOrder relations---
+        // --- ReturnProductOrder relations ---
         // One Transporter has many ReturnProductOrders
         builder.Entity<ReturnProductOrder>()
             .HasOne(rpo => rpo.Transporter)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One Address has many ReturnProductOrders
+        builder.Entity<ReturnProductOrder>()
+            .HasOne(rpo => rpo.Address)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One Order has many ReturnProductOrders
         builder.Entity<ReturnProductOrder>()
             .HasOne(rpo => rpo.Order)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One OrderProduct has many ReturnProductOrders
         builder.Entity<ReturnProductOrder>()
             .HasOne(rpo => rpo.OrderProduct)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
-
-
-        // ---Review relations---
+        // --- Review relations ---
         // One Reviewer has many Reviews
         builder.Entity<Review>()
             .HasOne(rev => rev.Reviewer)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One Review has many EditHistories
         builder.Entity<Review>()
             .HasMany(r => r.EditsHistory)
-            .WithOne();
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
 
-
-
-        // ---Search relations---
+        // --- Search relations ---
         // One User has many Searches
         builder.Entity<Search>()
             .HasOne(s => s.User)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One Category has many Searches
         builder.Entity<Search>()
             .HasOne(s => s.Category)
-            .WithMany();
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
     }
+
+
+
 
     private static void Seed(ModelBuilder builder)
     {
@@ -336,7 +364,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 8999,
                 SalePercent = 10,
                 Warranty = new(730, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -348,19 +376,19 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 14999,
                 SalePercent = 15,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
                 Id = 3,
                 Name = "EA sports FC24 for PS5",
                 Description = "Latest EA sports soccer game ps5 edition.",
-                CategoryId = 1,
+                CategoryId = 2,
                 SKU = 10003,
                 PriceCents = 12999,
                 SalePercent = 5,
                 Warranty = new(14, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -372,7 +400,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 2999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -384,7 +412,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 4599,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
 
             // Toys, Games, Video Games & Accessories
@@ -398,7 +426,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 7999,
                 SalePercent = 5,
                 Warranty = new(183, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -410,7 +438,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 49999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -422,7 +450,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 49999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -434,7 +462,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 29999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -446,7 +474,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 1999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
 
             // Arts, Crafts & Sewing
@@ -460,7 +488,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 15999,
                 SalePercent = 20,
                 Warranty = new(1095, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -472,7 +500,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 39999,
                 SalePercent = 10,
                 Warranty = new(730, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -484,7 +512,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 2499,
                 SalePercent = 5,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -496,7 +524,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 3999,
                 SalePercent = 10,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -508,7 +536,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 5999,
                 SalePercent = 5,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
 
             // Clothing, Shoes & Jewelry
@@ -522,7 +550,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 4999,
                 SalePercent = 10,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -534,7 +562,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 8999,
                 SalePercent = 15,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -546,7 +574,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 1999,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -558,7 +586,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 14999,
                 SalePercent = 10,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -570,7 +598,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 29999,
                 SalePercent = 5,
                 Warranty = new(730, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
 
             // Beauty & Personal Care
@@ -584,7 +612,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 3999,
                 SalePercent = 10,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -596,7 +624,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 2999,
                 SalePercent = 5,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -608,7 +636,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 7999,
                 SalePercent = 15,
                 Warranty = new(730, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -620,7 +648,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 5999,
                 SalePercent = 10,
                 Warranty = new(730, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new Product
             {
@@ -632,7 +660,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 PriceCents = 1299,
                 SalePercent = 0,
                 Warranty = new(365, 0, 0, 0),
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             });
 
         // Seed PromoCodes
@@ -644,7 +672,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 Description = "SUMMER2024",
                 Percent = 10,
                 MaxSaleCents = 5000,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new PromoCode
             {
@@ -652,7 +680,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 Code = "WELCOME10",
                 Description = "WELCOME10",
                 Percent = 10,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new PromoCode
             {
@@ -661,7 +689,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 Description = "HOLIDAY25",
                 Percent = 25,
                 MaxSaleCents = 15000,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             },
             new PromoCode
             {
@@ -670,7 +698,7 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 Description = "SPRING2024",
                 Percent = 15,
                 MaxSaleCents = 8000,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = new(2024, 1, 1)
             });
     }
 }

@@ -7,7 +7,7 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         public User? User { get; set; }
-        [Required] public string KeyWord { get; set; }
+        [Required] public required string KeyWord { get; set; }
         public Category? Category { get; set; }
     }
 }

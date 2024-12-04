@@ -6,12 +6,12 @@ namespace Egost.Models
     public class Address
     {
         [Key] public int Id { get; set; }
-        [Required] public string AddressLine1 { get; set; }
+        [Required] public required string AddressLine1 { get; set; }
         public string? AddressLine2 { get; set; }
-        [Required] public string City { get; set; }
-        [Required] public string Country { get; set; }
-        [Required][DataType(DataType.PostalCode)] public string PostalCode { get; set; }
-        [Required][DataType(DataType.PhoneNumber)] public string Telephone { get; set; }
+        [Required] public required string City { get; set; }
+        [Required] public required string Country { get; set; }
+        [Required][DataType(DataType.PostalCode)] public required string PostalCode { get; set; }
+        [Required][DataType(DataType.PhoneNumber)] public required string Telephone { get; set; }
         [Required] public bool StoreAddress { get; set; } = false;
         [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         [DataType(DataType.DateTime)] public DateTime? DeletedDateTime { get; set; }
@@ -29,7 +29,8 @@ namespace Egost.Models
                     PostalCode = "Base",
                     Country = "Base",
                     Telephone = "Base",
-                    StoreAddress = true
+                    StoreAddress = true,
+                    CreatedDateTime = new(2024, 1, 1)
                 };
             }
         }

@@ -7,9 +7,9 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         [Required] public User? Editor { get; set; }
-        [Required] public string Field { get; set; }
-        [Required] public string OldData { get; set; }
-        [Required] public string NewData { get; set; }
+        [Required] public required string Field { get; set; }
+        [Required] public required string OldData { get; set; }
+        [Required] public required string NewData { get; set; }
         [Required][DataType(DataType.DateTime)] public DateTime EditDateTime { get; set; } = DateTime.Now;
     }
 }

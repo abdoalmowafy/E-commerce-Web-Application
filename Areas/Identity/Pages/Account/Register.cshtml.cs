@@ -80,7 +80,6 @@ namespace Egost.Areas.Identity.Pages.Account
             [Display(Name = "Full name")]
             public string Name { get; set; }
 
-            [Required]
             [DataType(DataType.Text)]
             [Display(Name = "Gender")]
             [AllowedValues("Male", "Female")]
@@ -133,7 +132,7 @@ namespace Egost.Areas.Identity.Pages.Account
                 var user = CreateUser();
 
                 user.Name = Input.Name;
-                user.Gender = Input.Gender;
+                user.Gender = Enum.TryParse<Gender>(Input.Gender, out var parsed) ? parsed : null;
                 user.DOB = Input.DOB;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

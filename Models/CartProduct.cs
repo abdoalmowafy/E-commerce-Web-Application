@@ -6,6 +6,6 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         [Required] public Product Product { get; set; }
-        [Required] public uint Quantity { get; set; }
+        [Required][Range(0,int.MaxValue)] public int Quantity { get; set; }
     }
 }

@@ -49,10 +49,9 @@ namespace Egost.Migrations
                     Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Percent = table.Column<int>(type: "int", nullable: false),
-                    MaxSaleCents = table.Column<decimal>(type: "decimal(20,0)", nullable: true),
+                    MaxSaleCents = table.Column<long>(type: "bigint", nullable: true),
                     Active = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -89,9 +88,9 @@ namespace Egost.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    SKU = table.Column<long>(type: "bigint", nullable: false),
-                    Views = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    PriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    SKU = table.Column<int>(type: "int", nullable: false),
+                    Views = table.Column<long>(type: "bigint", nullable: false),
+                    PriceCents = table.Column<long>(type: "bigint", nullable: false),
                     SalePercent = table.Column<int>(type: "int", nullable: false),
                     Warranty = table.Column<TimeSpan>(type: "time", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -169,7 +168,7 @@ namespace Egost.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     CartId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -179,7 +178,8 @@ namespace Egost.Migrations
                         name: "FK_CartProducts_Carts_CartId",
                         column: x => x.CartId,
                         principalTable: "Carts",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_CartProducts_Products_ProductId",
                         column: x => x.ProductId,
@@ -212,7 +212,8 @@ namespace Egost.Migrations
                         name: "FK_Addresses_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -301,18 +302,40 @@ namespace Egost.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductUser",
+                name: "DeletesHistory",
                 columns: table => new
                 {
-                    WishListId = table.Column<int>(type: "int", nullable: false),
-                    WishlistUsersId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DeleterId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DeletedModelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeletedId = table.Column<int>(type: "int", nullable: false),
+                    DeleteDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductUser", x => new { x.WishListId, x.WishlistUsersId });
+                    table.PrimaryKey("PK_DeletesHistory", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductUser_AspNetUsers_WishlistUsersId",
-                        column: x => x.WishlistUsersId,
+                        name: "FK_DeletesHistory_AspNetUsers_DeleterId",
+                        column: x => x.DeleterId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductUser",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    WishListId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductUser", x => new { x.UserId, x.WishListId });
+                    table.ForeignKey(
+                        name: "FK_ProductUser_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -345,13 +368,13 @@ namespace Egost.Migrations
                         column: x => x.ReviewerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Reviews_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -371,12 +394,14 @@ namespace Egost.Migrations
                         name: "FK_Searches_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Searches_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -388,7 +413,7 @@ namespace Egost.Migrations
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     TransporterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     PromoCodeId = table.Column<int>(type: "int", nullable: true),
-                    TotalCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    TotalCents = table.Column<long>(type: "bigint", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DeliveryNeeded = table.Column<bool>(type: "bit", nullable: false),
@@ -407,7 +432,7 @@ namespace Egost.Migrations
                         column: x => x.AddressId,
                         principalTable: "Addresses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Orders_AspNetUsers_TransporterId",
                         column: x => x.TransporterId,
@@ -433,7 +458,7 @@ namespace Egost.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EditorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EditorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Field = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OldData = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NewData = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -458,7 +483,7 @@ namespace Egost.Migrations
                         column: x => x.EditorId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_EditHistories_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -481,7 +506,8 @@ namespace Egost.Migrations
                         name: "FK_EditHistories_Reviews_ReviewId",
                         column: x => x.ReviewId,
                         principalTable: "Reviews",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -491,9 +517,9 @@ namespace Egost.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    ProductPriceCents = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    ProductPriceCents = table.Column<long>(type: "bigint", nullable: false),
                     SalePercent = table.Column<float>(type: "real", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     Warranty = table.Column<TimeSpan>(type: "time", nullable: false),
                     PartiallyOrFullyReturnedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrderId = table.Column<int>(type: "int", nullable: true)
@@ -505,13 +531,14 @@ namespace Egost.Migrations
                         name: "FK_OrderProducts_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderProducts_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -521,39 +548,55 @@ namespace Egost.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TransporterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AddressId = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<int>(type: "int", nullable: false),
                     OrderProductId = table.Column<int>(type: "int", nullable: false),
                     ReturnReason = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReturnedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ReturnedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ReturnProductOrders", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_ReturnProductOrders_Addresses_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Addresses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_ReturnProductOrders_AspNetUsers_TransporterId",
                         column: x => x.TransporterId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReturnProductOrders_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ReturnProductOrders_OrderProducts_OrderProductId",
                         column: x => x.OrderProductId,
                         principalTable: "OrderProducts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ReturnProductOrders_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
                 table: "Addresses",
                 columns: new[] { "Id", "AddressLine1", "AddressLine2", "City", "Country", "CreatedDateTime", "DeletedDateTime", "PostalCode", "StoreAddress", "Telephone", "UserId" },
-                values: new object[] { 1, "Base", null, "Base", "Base", new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(500), null, "Base", true, "Base", null });
+                values: new object[] { 1, "Base", null, "Base", "Base", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Base", true, "Base", null });
 
             migrationBuilder.InsertData(
                 table: "Categories",
@@ -576,13 +619,13 @@ namespace Egost.Migrations
 
             migrationBuilder.InsertData(
                 table: "PromoCodes",
-                columns: new[] { "Id", "Active", "Code", "CreatedDateTime", "DeletedDateTime", "Description", "MaxSaleCents", "Percent" },
+                columns: new[] { "Id", "Active", "Code", "CreatedDateTime", "Description", "MaxSaleCents", "Percent" },
                 values: new object[,]
                 {
-                    { 1, true, "SUMMER2024", new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(832), null, "SUMMER2024", 5000m, 10 },
-                    { 2, true, "WELCOME10", new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(835), null, "WELCOME10", null, 10 },
-                    { 3, true, "HOLIDAY25", new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(838), null, "HOLIDAY25", 15000m, 25 },
-                    { 4, true, "SPRING2024", new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(841), null, "SPRING2024", 8000m, 15 }
+                    { 1, true, "SUMMER2024", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SUMMER2024", 5000L, 10 },
+                    { 2, true, "WELCOME10", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "WELCOME10", null, 10 },
+                    { 3, true, "HOLIDAY25", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "HOLIDAY25", 15000L, 25 },
+                    { 4, true, "SPRING2024", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SPRING2024", 8000L, 15 }
                 });
 
             migrationBuilder.InsertData(
@@ -590,31 +633,31 @@ namespace Egost.Migrations
                 columns: new[] { "Id", "CategoryId", "CreatedDateTime", "DeletedDateTime", "Description", "Name", "PriceCents", "SKU", "SalePercent", "Views", "Warranty" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(706), null, "High-quality tennis racket for professionals.", "Wilson Tennis Racket", 8999m, 10001L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 2, 1, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(710), null, "Top-notch acoustic guitar with a smooth finish.", "Yamaha Acoustic Guitar", 14999m, 10002L, 15, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 3, 1, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(714), null, "Latest EA sports soccer game ps5 edition.", "EA sports FC24 for PS5", 12999m, 10003L, 5, 0m, new TimeSpan(14, 0, 0, 0, 0) },
-                    { 4, 1, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(717), null, "Official size soccer ball for all levels.", "Adidas Soccer Ball", 2999m, 10004L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 5, 1, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(720), null, "Complete badminton set for backyard fun.", "Wilson Badminton Set", 4599m, 10005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 6, 2, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(723), null, "Buildable Star Wars-themed LEGO set.", "LEGO Star Wars Set", 7999m, 20001L, 5, 0m, new TimeSpan(183, 0, 0, 0, 0) },
-                    { 7, 2, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(726), null, "Next-generation gaming console with ultra-high-speed SSD.", "PlayStation 5 Console", 49999m, 20002L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 8, 2, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(729), null, "Powerful gaming console with immersive gameplay.", "Xbox Series X", 49999m, 20003L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 9, 2, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(731), null, "Portable gaming console for versatile play.", "Nintendo Switch", 29999m, 20004L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 10, 2, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(734), null, "Classic board game for family and friends.", "Hasbro Monopoly Game", 1999m, 20005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 11, 3, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(737), null, "Reliable sewing machine for all skill levels.", "Singer Sewing Machine", 15999m, 30001L, 20, 0m, new TimeSpan(1095, 0, 0, 0, 0) },
-                    { 12, 3, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(743), null, "Versatile cutting machine for crafting projects.", "Cricut Maker Machine", 39999m, 30002L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 13, 3, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(746), null, "High-quality colored pencils for artists.", "Faber-Castell Colored Pencils", 2499m, 30003L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 14, 3, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(749), null, "Alcohol-based markers for smooth blending.", "Prismacolor Markers", 3999m, 30004L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 15, 3, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(766), null, "Premium watercolor paints for artists.", "Schmincke Watercolors", 5999m, 30005L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 16, 4, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(769), null, "Classic straight-fit jeans for men.", "Levi's Denim Jeans", 4999m, 40001L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 17, 4, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(772), null, "Comfortable and stylish sneakers for daily wear.", "Nike Air Max Sneakers", 8999m, 40002L, 15, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 18, 4, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(775), null, "Soft cotton T-shirt with modern fit.", "Calvin Klein T-shirt", 1999m, 40003L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 19, 4, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(778), null, "Iconic sunglasses with a timeless design.", "Ray-Ban Aviator Sunglasses", 14999m, 40004L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 20, 4, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(781), null, "Luxury leather handbag with modern style.", "Michael Kors Leather Handbag", 29999m, 40005L, 5, 0m, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 21, 5, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(783), null, "Powerful hair dryer with multiple heat settings.", "Revlon Hair Dryer", 3999m, 50001L, 10, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 22, 5, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(786), null, "Anti-aging cream for daily use.", "Olay Regenerist Cream", 2999m, 50002L, 5, 0m, new TimeSpan(365, 0, 0, 0, 0) },
-                    { 23, 5, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(789), null, "Cordless electric shaver with precision blades.", "Philips Electric Shaver", 7999m, 50003L, 15, 0m, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 24, 5, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(792), null, "Rechargeable toothbrush with multiple brush heads.", "Oral-B Electric Toothbrush", 5999m, 50004L, 10, 0m, new TimeSpan(730, 0, 0, 0, 0) },
-                    { 25, 5, new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(795), null, "Moisturizing body wash for soft skin.", "Dove Body Wash", 1299m, 50005L, 0, 0m, new TimeSpan(365, 0, 0, 0, 0) }
+                    { 1, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "High-quality tennis racket for professionals.", "Wilson Tennis Racket", 8999L, 10001, 10, 0L, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 2, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Top-notch acoustic guitar with a smooth finish.", "Yamaha Acoustic Guitar", 14999L, 10002, 15, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 3, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Latest EA sports soccer game ps5 edition.", "EA sports FC24 for PS5", 12999L, 10003, 5, 0L, new TimeSpan(14, 0, 0, 0, 0) },
+                    { 4, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Official size soccer ball for all levels.", "Adidas Soccer Ball", 2999L, 10004, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Complete badminton set for backyard fun.", "Wilson Badminton Set", 4599L, 10005, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 6, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Buildable Star Wars-themed LEGO set.", "LEGO Star Wars Set", 7999L, 20001, 5, 0L, new TimeSpan(183, 0, 0, 0, 0) },
+                    { 7, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Next-generation gaming console with ultra-high-speed SSD.", "PlayStation 5 Console", 49999L, 20002, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 8, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Powerful gaming console with immersive gameplay.", "Xbox Series X", 49999L, 20003, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 9, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Portable gaming console for versatile play.", "Nintendo Switch", 29999L, 20004, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 10, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Classic board game for family and friends.", "Hasbro Monopoly Game", 1999L, 20005, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 11, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Reliable sewing machine for all skill levels.", "Singer Sewing Machine", 15999L, 30001, 20, 0L, new TimeSpan(1095, 0, 0, 0, 0) },
+                    { 12, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Versatile cutting machine for crafting projects.", "Cricut Maker Machine", 39999L, 30002, 10, 0L, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 13, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "High-quality colored pencils for artists.", "Faber-Castell Colored Pencils", 2499L, 30003, 5, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 14, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Alcohol-based markers for smooth blending.", "Prismacolor Markers", 3999L, 30004, 10, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 15, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Premium watercolor paints for artists.", "Schmincke Watercolors", 5999L, 30005, 5, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 16, 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Classic straight-fit jeans for men.", "Levi's Denim Jeans", 4999L, 40001, 10, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 17, 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Comfortable and stylish sneakers for daily wear.", "Nike Air Max Sneakers", 8999L, 40002, 15, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 18, 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Soft cotton T-shirt with modern fit.", "Calvin Klein T-shirt", 1999L, 40003, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 19, 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Iconic sunglasses with a timeless design.", "Ray-Ban Aviator Sunglasses", 14999L, 40004, 10, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 20, 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Luxury leather handbag with modern style.", "Michael Kors Leather Handbag", 29999L, 40005, 5, 0L, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 21, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Powerful hair dryer with multiple heat settings.", "Revlon Hair Dryer", 3999L, 50001, 10, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 22, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Anti-aging cream for daily use.", "Olay Regenerist Cream", 2999L, 50002, 5, 0L, new TimeSpan(365, 0, 0, 0, 0) },
+                    { 23, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Cordless electric shaver with precision blades.", "Philips Electric Shaver", 7999L, 50003, 15, 0L, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 24, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Rechargeable toothbrush with multiple brush heads.", "Oral-B Electric Toothbrush", 5999L, 50004, 10, 0L, new TimeSpan(730, 0, 0, 0, 0) },
+                    { 25, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Moisturizing body wash for soft skin.", "Dove Body Wash", 1299L, 50005, 0, 0L, new TimeSpan(365, 0, 0, 0, 0) }
                 });
 
             migrationBuilder.CreateIndex(
@@ -682,6 +725,11 @@ namespace Egost.Migrations
                 column: "PromoCodeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DeletesHistory_DeleterId",
+                table: "DeletesHistory",
+                column: "DeleterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EditHistories_AddressId",
                 table: "EditHistories",
                 column: "AddressId");
@@ -747,9 +795,14 @@ namespace Egost.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductUser_WishlistUsersId",
+                name: "IX_ProductUser_WishListId",
                 table: "ProductUser",
-                column: "WishlistUsersId");
+                column: "WishListId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReturnProductOrders_AddressId",
+                table: "ReturnProductOrders",
+                column: "AddressId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReturnProductOrders_OrderId",
@@ -765,6 +818,11 @@ namespace Egost.Migrations
                 name: "IX_ReturnProductOrders_TransporterId",
                 table: "ReturnProductOrders",
                 column: "TransporterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReturnProductOrders_UserId",
+                table: "ReturnProductOrders",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_ProductId",
@@ -807,6 +865,9 @@ namespace Egost.Migrations
 
             migrationBuilder.DropTable(
                 name: "CartProducts");
+
+            migrationBuilder.DropTable(
+                name: "DeletesHistory");
 
             migrationBuilder.DropTable(
                 name: "EditHistories");

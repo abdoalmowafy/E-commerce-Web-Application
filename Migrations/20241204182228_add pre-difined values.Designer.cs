@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Egost.Migrations
 {
     [DbContext(typeof(EgostContext))]
-    [Migration("20240922145244_Initial")]
-    partial class Initial
+    [Migration("20241204182228_add pre-difined values")]
+    partial class addpredifinedvalues
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -54,8 +54,7 @@ namespace Egost.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Gender")
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -165,7 +164,7 @@ namespace Egost.Migrations
                             AddressLine1 = "Base",
                             City = "Base",
                             Country = "Base",
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(500),
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PostalCode = "Base",
                             StoreAddress = true,
                             Telephone = "Base"
@@ -204,8 +203,8 @@ namespace Egost.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<long>("Quantity")
-                        .HasColumnType("bigint");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -295,6 +294,35 @@ namespace Egost.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Egost.Models.DeleteHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeleteDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DeletedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletedModelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeleterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeleterId");
+
+                    b.ToTable("DeletesHistory");
+                });
+
             modelBuilder.Entity("Egost.Models.EditHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -310,7 +338,6 @@ namespace Egost.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EditorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Field")
@@ -394,8 +421,8 @@ namespace Egost.Migrations
                     b.Property<int?>("PromoCodeId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("TotalCents")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<long>("TotalCents")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("TransporterId")
                         .HasColumnType("nvarchar(450)");
@@ -434,11 +461,11 @@ namespace Egost.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ProductPriceCents")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<long>("Quantity")
+                    b.Property<long>("ProductPriceCents")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<float>("SalePercent")
                         .HasColumnType("real");
@@ -453,380 +480,6 @@ namespace Egost.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderProducts");
-                });
-
-            modelBuilder.Entity("Egost.Models.Product", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("PriceCents")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<long>("SKU")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("SalePercent")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Views")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<TimeSpan>("Warranty")
-                        .HasColumnType("time");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Products");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(706),
-                            Description = "High-quality tennis racket for professionals.",
-                            Name = "Wilson Tennis Racket",
-                            PriceCents = 8999m,
-                            SKU = 10001L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(710),
-                            Description = "Top-notch acoustic guitar with a smooth finish.",
-                            Name = "Yamaha Acoustic Guitar",
-                            PriceCents = 14999m,
-                            SKU = 10002L,
-                            SalePercent = 15,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(714),
-                            Description = "Latest EA sports soccer game ps5 edition.",
-                            Name = "EA sports FC24 for PS5",
-                            PriceCents = 12999m,
-                            SKU = 10003L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(14, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(717),
-                            Description = "Official size soccer ball for all levels.",
-                            Name = "Adidas Soccer Ball",
-                            PriceCents = 2999m,
-                            SKU = 10004L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CategoryId = 1,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(720),
-                            Description = "Complete badminton set for backyard fun.",
-                            Name = "Wilson Badminton Set",
-                            PriceCents = 4599m,
-                            SKU = 10005L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(723),
-                            Description = "Buildable Star Wars-themed LEGO set.",
-                            Name = "LEGO Star Wars Set",
-                            PriceCents = 7999m,
-                            SKU = 20001L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(183, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(726),
-                            Description = "Next-generation gaming console with ultra-high-speed SSD.",
-                            Name = "PlayStation 5 Console",
-                            PriceCents = 49999m,
-                            SKU = 20002L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(729),
-                            Description = "Powerful gaming console with immersive gameplay.",
-                            Name = "Xbox Series X",
-                            PriceCents = 49999m,
-                            SKU = 20003L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(731),
-                            Description = "Portable gaming console for versatile play.",
-                            Name = "Nintendo Switch",
-                            PriceCents = 29999m,
-                            SKU = 20004L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CategoryId = 2,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(734),
-                            Description = "Classic board game for family and friends.",
-                            Name = "Hasbro Monopoly Game",
-                            PriceCents = 1999m,
-                            SKU = 20005L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(737),
-                            Description = "Reliable sewing machine for all skill levels.",
-                            Name = "Singer Sewing Machine",
-                            PriceCents = 15999m,
-                            SKU = 30001L,
-                            SalePercent = 20,
-                            Views = 0m,
-                            Warranty = new TimeSpan(1095, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(743),
-                            Description = "Versatile cutting machine for crafting projects.",
-                            Name = "Cricut Maker Machine",
-                            PriceCents = 39999m,
-                            SKU = 30002L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(746),
-                            Description = "High-quality colored pencils for artists.",
-                            Name = "Faber-Castell Colored Pencils",
-                            PriceCents = 2499m,
-                            SKU = 30003L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(749),
-                            Description = "Alcohol-based markers for smooth blending.",
-                            Name = "Prismacolor Markers",
-                            PriceCents = 3999m,
-                            SKU = 30004L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CategoryId = 3,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(766),
-                            Description = "Premium watercolor paints for artists.",
-                            Name = "Schmincke Watercolors",
-                            PriceCents = 5999m,
-                            SKU = 30005L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(769),
-                            Description = "Classic straight-fit jeans for men.",
-                            Name = "Levi's Denim Jeans",
-                            PriceCents = 4999m,
-                            SKU = 40001L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 17,
-                            CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(772),
-                            Description = "Comfortable and stylish sneakers for daily wear.",
-                            Name = "Nike Air Max Sneakers",
-                            PriceCents = 8999m,
-                            SKU = 40002L,
-                            SalePercent = 15,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 18,
-                            CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(775),
-                            Description = "Soft cotton T-shirt with modern fit.",
-                            Name = "Calvin Klein T-shirt",
-                            PriceCents = 1999m,
-                            SKU = 40003L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 19,
-                            CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(778),
-                            Description = "Iconic sunglasses with a timeless design.",
-                            Name = "Ray-Ban Aviator Sunglasses",
-                            PriceCents = 14999m,
-                            SKU = 40004L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 20,
-                            CategoryId = 4,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(781),
-                            Description = "Luxury leather handbag with modern style.",
-                            Name = "Michael Kors Leather Handbag",
-                            PriceCents = 29999m,
-                            SKU = 40005L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(783),
-                            Description = "Powerful hair dryer with multiple heat settings.",
-                            Name = "Revlon Hair Dryer",
-                            PriceCents = 3999m,
-                            SKU = 50001L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(786),
-                            Description = "Anti-aging cream for daily use.",
-                            Name = "Olay Regenerist Cream",
-                            PriceCents = 2999m,
-                            SKU = 50002L,
-                            SalePercent = 5,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 23,
-                            CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(789),
-                            Description = "Cordless electric shaver with precision blades.",
-                            Name = "Philips Electric Shaver",
-                            PriceCents = 7999m,
-                            SKU = 50003L,
-                            SalePercent = 15,
-                            Views = 0m,
-                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 24,
-                            CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(792),
-                            Description = "Rechargeable toothbrush with multiple brush heads.",
-                            Name = "Oral-B Electric Toothbrush",
-                            PriceCents = 5999m,
-                            SKU = 50004L,
-                            SalePercent = 10,
-                            Views = 0m,
-                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = 25,
-                            CategoryId = 5,
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(795),
-                            Description = "Moisturizing body wash for soft skin.",
-                            Name = "Dove Body Wash",
-                            PriceCents = 1299m,
-                            SKU = 50005L,
-                            SalePercent = 0,
-                            Views = 0m,
-                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
-                        });
                 });
 
             modelBuilder.Entity("Egost.Models.PromoCode", b =>
@@ -847,15 +500,12 @@ namespace Egost.Migrations
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DeletedDateTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("MaxSaleCents")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<long?>("MaxSaleCents")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Percent")
                         .HasColumnType("int");
@@ -870,9 +520,9 @@ namespace Egost.Migrations
                             Id = 1,
                             Active = true,
                             Code = "SUMMER2024",
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(832),
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "SUMMER2024",
-                            MaxSaleCents = 5000m,
+                            MaxSaleCents = 5000L,
                             Percent = 10
                         },
                         new
@@ -880,7 +530,7 @@ namespace Egost.Migrations
                             Id = 2,
                             Active = true,
                             Code = "WELCOME10",
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(835),
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "WELCOME10",
                             Percent = 10
                         },
@@ -889,9 +539,9 @@ namespace Egost.Migrations
                             Id = 3,
                             Active = true,
                             Code = "HOLIDAY25",
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(838),
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "HOLIDAY25",
-                            MaxSaleCents = 15000m,
+                            MaxSaleCents = 15000L,
                             Percent = 25
                         },
                         new
@@ -899,9 +549,9 @@ namespace Egost.Migrations
                             Id = 4,
                             Active = true,
                             Code = "SPRING2024",
-                            CreatedDateTime = new DateTime(2024, 9, 22, 17, 52, 44, 217, DateTimeKind.Local).AddTicks(841),
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "SPRING2024",
-                            MaxSaleCents = 8000m,
+                            MaxSaleCents = 8000L,
                             Percent = 15
                         });
                 });
@@ -914,7 +564,13 @@ namespace Egost.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AddressId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedDateTime")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("OrderId")
@@ -923,8 +579,8 @@ namespace Egost.Migrations
                     b.Property<int>("OrderProductId")
                         .HasColumnType("int");
 
-                    b.Property<long>("Quantity")
-                        .HasColumnType("bigint");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<string>("ReturnReason")
                         .IsRequired()
@@ -936,13 +592,20 @@ namespace Egost.Migrations
                     b.Property<string>("TransporterId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
 
                     b.HasIndex("OrderId");
 
                     b.HasIndex("OrderProductId");
 
                     b.HasIndex("TransporterId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ReturnProductOrders");
                 });
@@ -1148,17 +811,391 @@ namespace Egost.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PriceCents")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SKU")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SalePercent")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Views")
+                        .HasColumnType("bigint");
+
+                    b.Property<TimeSpan>("Warranty")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryId = 1,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "High-quality tennis racket for professionals.",
+                            Name = "Wilson Tennis Racket",
+                            PriceCents = 8999L,
+                            SKU = 10001,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryId = 1,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Top-notch acoustic guitar with a smooth finish.",
+                            Name = "Yamaha Acoustic Guitar",
+                            PriceCents = 14999L,
+                            SKU = 10002,
+                            SalePercent = 15,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Latest EA sports soccer game ps5 edition.",
+                            Name = "EA sports FC24 for PS5",
+                            PriceCents = 12999L,
+                            SKU = 10003,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(14, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryId = 1,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Official size soccer ball for all levels.",
+                            Name = "Adidas Soccer Ball",
+                            PriceCents = 2999L,
+                            SKU = 10004,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CategoryId = 1,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Complete badminton set for backyard fun.",
+                            Name = "Wilson Badminton Set",
+                            PriceCents = 4599L,
+                            SKU = 10005,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Buildable Star Wars-themed LEGO set.",
+                            Name = "LEGO Star Wars Set",
+                            PriceCents = 7999L,
+                            SKU = 20001,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(183, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Next-generation gaming console with ultra-high-speed SSD.",
+                            Name = "PlayStation 5 Console",
+                            PriceCents = 49999L,
+                            SKU = 20002,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Powerful gaming console with immersive gameplay.",
+                            Name = "Xbox Series X",
+                            PriceCents = 49999L,
+                            SKU = 20003,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Portable gaming console for versatile play.",
+                            Name = "Nintendo Switch",
+                            PriceCents = 29999L,
+                            SKU = 20004,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CategoryId = 2,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Classic board game for family and friends.",
+                            Name = "Hasbro Monopoly Game",
+                            PriceCents = 1999L,
+                            SKU = 20005,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CategoryId = 3,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Reliable sewing machine for all skill levels.",
+                            Name = "Singer Sewing Machine",
+                            PriceCents = 15999L,
+                            SKU = 30001,
+                            SalePercent = 20,
+                            Views = 0L,
+                            Warranty = new TimeSpan(1095, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CategoryId = 3,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Versatile cutting machine for crafting projects.",
+                            Name = "Cricut Maker Machine",
+                            PriceCents = 39999L,
+                            SKU = 30002,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CategoryId = 3,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "High-quality colored pencils for artists.",
+                            Name = "Faber-Castell Colored Pencils",
+                            PriceCents = 2499L,
+                            SKU = 30003,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CategoryId = 3,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Alcohol-based markers for smooth blending.",
+                            Name = "Prismacolor Markers",
+                            PriceCents = 3999L,
+                            SKU = 30004,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CategoryId = 3,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Premium watercolor paints for artists.",
+                            Name = "Schmincke Watercolors",
+                            PriceCents = 5999L,
+                            SKU = 30005,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CategoryId = 4,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Classic straight-fit jeans for men.",
+                            Name = "Levi's Denim Jeans",
+                            PriceCents = 4999L,
+                            SKU = 40001,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CategoryId = 4,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Comfortable and stylish sneakers for daily wear.",
+                            Name = "Nike Air Max Sneakers",
+                            PriceCents = 8999L,
+                            SKU = 40002,
+                            SalePercent = 15,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CategoryId = 4,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Soft cotton T-shirt with modern fit.",
+                            Name = "Calvin Klein T-shirt",
+                            PriceCents = 1999L,
+                            SKU = 40003,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CategoryId = 4,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Iconic sunglasses with a timeless design.",
+                            Name = "Ray-Ban Aviator Sunglasses",
+                            PriceCents = 14999L,
+                            SKU = 40004,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CategoryId = 4,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Luxury leather handbag with modern style.",
+                            Name = "Michael Kors Leather Handbag",
+                            PriceCents = 29999L,
+                            SKU = 40005,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CategoryId = 5,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Powerful hair dryer with multiple heat settings.",
+                            Name = "Revlon Hair Dryer",
+                            PriceCents = 3999L,
+                            SKU = 50001,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CategoryId = 5,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Anti-aging cream for daily use.",
+                            Name = "Olay Regenerist Cream",
+                            PriceCents = 2999L,
+                            SKU = 50002,
+                            SalePercent = 5,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CategoryId = 5,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Cordless electric shaver with precision blades.",
+                            Name = "Philips Electric Shaver",
+                            PriceCents = 7999L,
+                            SKU = 50003,
+                            SalePercent = 15,
+                            Views = 0L,
+                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 24,
+                            CategoryId = 5,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Rechargeable toothbrush with multiple brush heads.",
+                            Name = "Oral-B Electric Toothbrush",
+                            PriceCents = 5999L,
+                            SKU = 50004,
+                            SalePercent = 10,
+                            Views = 0L,
+                            Warranty = new TimeSpan(730, 0, 0, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 25,
+                            CategoryId = 5,
+                            CreatedDateTime = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Moisturizing body wash for soft skin.",
+                            Name = "Dove Body Wash",
+                            PriceCents = 1299L,
+                            SKU = 50005,
+                            SalePercent = 0,
+                            Views = 0L,
+                            Warranty = new TimeSpan(365, 0, 0, 0, 0)
+                        });
+                });
+
             modelBuilder.Entity("ProductUser", b =>
                 {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("WishListId")
                         .HasColumnType("int");
 
-                    b.Property<string>("WishlistUsersId")
-                        .HasColumnType("nvarchar(450)");
+                    b.HasKey("UserId", "WishListId");
 
-                    b.HasKey("WishListId", "WishlistUsersId");
-
-                    b.HasIndex("WishlistUsersId");
+                    b.HasIndex("WishListId");
 
                     b.ToTable("ProductUser");
                 });
@@ -1178,7 +1215,8 @@ namespace Egost.Migrations
                 {
                     b.HasOne("Egost.Areas.Identity.Data.User", null)
                         .WithMany("Addresses")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Egost.Models.Cart", b =>
@@ -1194,15 +1232,27 @@ namespace Egost.Migrations
                 {
                     b.HasOne("Egost.Models.Cart", null)
                         .WithMany("CartProducts")
-                        .HasForeignKey("CartId");
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Egost.Models.Product", "Product")
+                    b.HasOne("Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Egost.Models.DeleteHistory", b =>
+                {
+                    b.HasOne("Egost.Areas.Identity.Data.User", "Deleter")
+                        .WithMany()
+                        .HasForeignKey("DeleterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Deleter");
                 });
 
             modelBuilder.Entity("Egost.Models.EditHistory", b =>
@@ -1215,10 +1265,9 @@ namespace Egost.Migrations
                     b.HasOne("Egost.Areas.Identity.Data.User", "Editor")
                         .WithMany()
                         .HasForeignKey("EditorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Egost.Models.Product", null)
+                    b.HasOne("Product", null)
                         .WithMany("EditsHistory")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1230,7 +1279,8 @@ namespace Egost.Migrations
 
                     b.HasOne("Egost.Models.Review", null)
                         .WithMany("EditsHistory")
-                        .HasForeignKey("ReviewId");
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Egost.Areas.Identity.Data.User", null)
                         .WithMany("EditsHistory")
@@ -1245,7 +1295,7 @@ namespace Egost.Migrations
                     b.HasOne("Egost.Models.Address", "Address")
                         .WithMany()
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Egost.Models.PromoCode", "PromoCode")
@@ -1276,45 +1326,49 @@ namespace Egost.Migrations
                 {
                     b.HasOne("Egost.Models.Order", null)
                         .WithMany("OrderProducts")
-                        .HasForeignKey("OrderId");
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Egost.Models.Product", "Product")
+                    b.HasOne("Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Egost.Models.Product", b =>
+            modelBuilder.Entity("Egost.Models.ReturnProductOrder", b =>
                 {
-                    b.HasOne("Egost.Models.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
+                    b.HasOne("Egost.Models.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("Egost.Models.ReturnProductOrder", b =>
-                {
                     b.HasOne("Egost.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Egost.Models.OrderProduct", "OrderProduct")
                         .WithMany()
                         .HasForeignKey("OrderProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Egost.Areas.Identity.Data.User", "Transporter")
                         .WithMany()
-                        .HasForeignKey("TransporterId");
+                        .HasForeignKey("TransporterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Egost.Areas.Identity.Data.User", null)
+                        .WithMany("ReturnProductOrders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Address");
 
                     b.Navigation("Order");
 
@@ -1325,16 +1379,16 @@ namespace Egost.Migrations
 
             modelBuilder.Entity("Egost.Models.Review", b =>
                 {
-                    b.HasOne("Egost.Models.Product", "Product")
+                    b.HasOne("Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Egost.Areas.Identity.Data.User", "Reviewer")
                         .WithMany()
                         .HasForeignKey("ReviewerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -1346,11 +1400,13 @@ namespace Egost.Migrations
                 {
                     b.HasOne("Egost.Models.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Egost.Areas.Identity.Data.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
 
@@ -1408,17 +1464,28 @@ namespace Egost.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Product", b =>
+                {
+                    b.HasOne("Egost.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("ProductUser", b =>
                 {
-                    b.HasOne("Egost.Models.Product", null)
+                    b.HasOne("Egost.Areas.Identity.Data.User", null)
                         .WithMany()
-                        .HasForeignKey("WishListId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Egost.Areas.Identity.Data.User", null)
+                    b.HasOne("Product", null)
                         .WithMany()
-                        .HasForeignKey("WishlistUsersId")
+                        .HasForeignKey("WishListId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1430,6 +1497,8 @@ namespace Egost.Migrations
                     b.Navigation("EditsHistory");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("ReturnProductOrders");
                 });
 
             modelBuilder.Entity("Egost.Models.Address", b =>
@@ -1452,13 +1521,6 @@ namespace Egost.Migrations
                     b.Navigation("OrderProducts");
                 });
 
-            modelBuilder.Entity("Egost.Models.Product", b =>
-                {
-                    b.Navigation("EditsHistory");
-
-                    b.Navigation("Reviews");
-                });
-
             modelBuilder.Entity("Egost.Models.PromoCode", b =>
                 {
                     b.Navigation("EditsHistory");
@@ -1467,6 +1529,13 @@ namespace Egost.Migrations
             modelBuilder.Entity("Egost.Models.Review", b =>
                 {
                     b.Navigation("EditsHistory");
+                });
+
+            modelBuilder.Entity("Product", b =>
+                {
+                    b.Navigation("EditsHistory");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

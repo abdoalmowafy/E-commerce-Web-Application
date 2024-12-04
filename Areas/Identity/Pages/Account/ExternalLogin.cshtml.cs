@@ -134,7 +134,7 @@ namespace Egost.Areas.Identity.Pages.Account
                     UserName = email,
                     Email = email,
                     Name = info.Principal.FindFirstValue(ClaimTypes.Name),
-                    Gender = info.Principal.FindFirstValue(ClaimTypes.Gender),
+                    Gender = Enum.TryParse<Gender>(info.Principal.FindFirstValue(ClaimTypes.Gender), true, out var parsed) ? parsed : null,
                     EmailConfirmed = true // Automatically confirm the email
                 };
 

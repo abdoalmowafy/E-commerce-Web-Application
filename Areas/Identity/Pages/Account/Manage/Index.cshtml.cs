@@ -67,9 +67,8 @@ namespace Egost.Areas.Identity.Pages.Account.Manage
             public DateOnly DOB { get; set; }
 
             [DataType(DataType.Text)]
-            [AllowedValues("Male", "Female")]
             [Display(Name = "Gender")]
-            public string Gender { get; set; }
+            public Gender? Gender { get; set; }
 
             [Phone]
             [Display(Name = "Phone number")]
