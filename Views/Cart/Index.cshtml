@@ -2,14 +2,7 @@
 @using System.IO
 @{
     ViewData["Title"] = "Cart";
-    float promoPercent = 0;
-    ulong? maxSaleCents = null;
-    if (ViewBag.PromoCode != null)
-    {
-        promoPercent = ViewBag.PromoCode.Percent;
-        maxSaleCents = ViewBag.PromoCode.MaxSaleCents;
-    }
-    ulong totalOrderCents = 0;
+    long totalOrderCents = 0;
 }
 
 
@@ -39,7 +32,7 @@
                 @foreach (var data in Model)
                 {
                     var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{data.Product.Id}")[0]);
-                    ulong totalProductCents = data.Product.PriceCents * data.Quantity * Convert.ToByte(100 - data.Product.SalePercent) / 100;
+                    long totalProductCents = data.Product.PriceCents * data.Quantity * (100 - data.Product.SalePercent) / 100;
                     totalOrderCents += totalProductCents;
                     <tr>
                         <td><a asp-controller="Store" asp-action="FullView" asp-route-Id=@data.Product.Id><img width="100px" src="~/Media/ProductMedia/@data.Product.Id/@MainImg"></a></td>
@@ -58,7 +51,7 @@
                                 }
                                 <p class="count-display m-1">@data.Quantity</p>
                                 <form method="post" asp-action="ModifyProducts" asp-route-ProductId=@data.Product.Id>
-                                    <input type="number" value=@data.Quantity hidden name="count" class="count-input fit" min=0 max=@data.Product.SKU>
+                                    <input type="number" value=@data.Quantity hidden name="count" class="count-input fit" min=0 max=@data.Product.SKU autofocus>
                                 </form>
                                 @if (data.Product.SKU > data.Quantity)
                                 {
@@ -75,7 +68,7 @@
                         @if (data.Product.SalePercent > 0)
                         {
                             <td>
-                                <p><strong>@(totalProductCents / 100.0) EGP</strong> (@string.Format("{0:F2}", data.Product.PriceCents * Convert.ToByte(100 - data.Product.SalePercent) / 10000.0) EGP Each)  &nbsp; <span class="badge bg-success">@(data.Product.SalePercent)% OFF</span></p>
+                                <p><strong>@(totalProductCents / 100.0) EGP</strong> (@string.Format("{0:F2}", data.Product.PriceCents * (100 - data.Product.SalePercent) / 10000.0) EGP Each)  &nbsp; <span class="badge bg-success">@(data.Product.SalePercent)% OFF</span></p>
                                 <del class="text-muted">@(data.Product.PriceCents * data.Quantity / 100.0) EGP (@(data.Product.PriceCents / 100.0) EGP Each) </del>
                             </td>
                         }
@@ -94,14 +87,29 @@
                     <td></td>
                     <td></td>
                     <td><strong class="text-danger">Promocode:</strong></td>
-                    <td><strong class="text-danger">- @(promoPercent == 0 ? "" : $"{promoPercent} %") (@(maxSaleCents.HasValue && promoPercent * totalOrderCents / 100.0 > maxSaleCents ? maxSaleCents / 100.0 : promoPercent * totalOrderCents / 10000.0) EGP)</strong></td>
+                    <td>
+                        @if (ViewBag.PromoCode == null)
+                        {
+                            <strong class="text-danger">-0% (0 EGP)</strong>
+                        }
+                        else if (ViewBag.PromoCode.MaxSaleCents == null)
+                        {
+                            <strong class="text-danger">-@ViewBag.PromoCode.Percent% (@string.Format("{0:F2}", totalOrderCents * ViewBag.PromoCode.Percent / 10000.0) EGP)</strong>
+                            totalOrderCents = totalOrderCents * (100 - ViewBag.PromoCode.Percent) / 100;
+                        }
+                        else
+                        {
+                            <strong class="text-danger">-@ViewBag.PromoCode.Percent% (@string.Format("{0:F2}", Math.Min(totalOrderCents * ViewBag.PromoCode.Percent / 10000.0, ViewBag.PromoCode.MaxSaleCents / 100.0)) EGP)</strong>
+                            totalOrderCents = totalOrderCents - Math.Min(totalOrderCents * ViewBag.PromoCode.Percent / 100, ViewBag.PromoCode.MaxSaleCents);
+                        }
+                    </td>
                     <td></td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
                     <td><strong class="text-success">Total:</strong></td>
-                    <td><strong class="text-success">@(totalOrderCents * (100 - promoPercent) / 10000.0) EGP</strong></td>
+                        <td><strong class="text-success">@string.Format("{0:F2}", totalOrderCents / 100.0) EGP</strong></td>
                     <td></td>
                 </tr>
             </tbody>
@@ -140,7 +148,7 @@
                             <fieldset class="form-group mb-5">
                                 <legend class="mt-4">Shipping Address</legend>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" id="DeliveryToStoreAddress" checked>
+                                    <input class="form-check-input" type="radio" name="DeliveryAddress" id="DeliveryToStoreAddress" checked>
                                     <label class="form-check-label" for="DeliveryToStoreAddress">
                                         Express Shipping <strong>(To Egost Store - Cairo)</strong>
                                     </label>
@@ -160,7 +168,7 @@
                                             @foreach (var address in ViewBag.StoreAddresses)
                                             {
                                                 <tr>
-                                                    <td><input type="radio" value=@address.Id name="ShippingAddressId" required></td>
+                                                    <td><input type="radio" value=@address.Id name="shippingAddressId" required></td>
                                                     <td>@address.AddressLine1</td>
                                                     <td>@address.AddressLine2</td>
                                                     <td>@address.City</td>
@@ -173,7 +181,7 @@
                                     </table>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" id="DeliveryToUserAddress">
+                                    <input class="form-check-input" type="radio" name="DeliveryAddress" id="DeliveryToUserAddress">
                                     <label class="form-check-label" for="DeliveryToUserAddress">
                                         Ship to my Address <strong>(+50 EGP Shipping Fee)</strong>
                                     </label>
@@ -193,7 +201,7 @@
                                             @foreach (var address in ViewBag.UserAddresses)
                                             {
                                                 <tr>
-                                                    <td><input type="radio" value=@address.Id name="ShippingAddressId" required></td>
+                                                    <td><input type="radio" value=@address.Id name="shippingAddressId" required></td>
                                                     <td>@address.AddressLine1</td>
                                                     <td>@address.AddressLine2</td>
                                                     <td>@address.City</td>
@@ -202,6 +210,9 @@
                                                     <td>@address.Telephone</td>
                                                 </tr>
                                             }
+                                            <tr>
+                                                <td colspan="7"><a class="btn btn-info w-100" asp-area="Identity" asp-page="/Account/Manage/Addresses">Add/Edit Addresses</a></td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -209,13 +220,13 @@
                             <fieldset class="form-group mb-5">
                                 <legend class="mt-4">Payment Method</legend>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="COD" value="COD" checked>
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="COD" value="COD" checked>
                                     <label class="form-check-label" for="COD">
                                         Cash on Delivery <strong>(+10 EGP Fee)</strong>
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="CreditCard" value="CreditCard">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="CreditCard" value="CreditCard">
                                     <label class="form-check-label" for="CreditCard">
                                         Credit Card <br />
                                         <img class="icon" src="~/Media/PayMethods/Mastercard.png" />
@@ -224,7 +235,7 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="MobileWallet" value="MobileWallet">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="MobileWallet" value="MobileWallet">
                                     <label class="form-check-label" for="MobileWallet">
                                         Mobile Wallet &nbsp; <br />
                                         <img class="icon" src="~/Media/PayMethods/vodafoneCash.png" />
@@ -239,6 +250,25 @@
                             Paypal
                             </label>
                             </div> *@
+                            </fieldset>
+                            <fieldset class="mb-5">
+                                <legend class="mt-4">Paying</legend>
+                                <table class="table table-bordered table-striped-columns">
+                                    <thead>
+                                        <tr>
+                                            <th>Total after sale</th>
+                                            <th>total fees</th>
+                                            <th>Total paying</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>@string.Format("{0:F2}", totalOrderCents / 100.0) EGP</th>
+                                            <th id="fee" class="text-warning">10 EGP</th>
+                                            <th id="total" class="text-success">@string.Format("{0:F2}", 10 + totalOrderCents / 100.0) EGP</th>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </fieldset>
 
                             <button type="submit" class="btn btn-primary">Submit</button>
