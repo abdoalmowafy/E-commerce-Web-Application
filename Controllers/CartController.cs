@@ -23,7 +23,6 @@ namespace Egost.Controllers
                     .ThenInclude(c => c.PromoCode)
                 .FirstOrDefault(u => u.UserName == User.Identity!.Name);
             var cart = user!.Cart;
-            var addresses = user.Addresses;
 
             var invalidCartProducts = cart.CartProducts.Where(cp => cp.Product.DeletedDateTime.HasValue || cp.Product.SKU < 1 || cp.Quantity > cp.Product.SKU);
             if (invalidCartProducts.Any()) 
@@ -37,7 +36,7 @@ namespace Egost.Controllers
                 _db.SaveChanges();
             }
 
-            if (cart.PromoCode != null && (!cart.PromoCode.Active || cart.PromoCode.DeletedDateTime.HasValue))
+            if (cart.PromoCode != null && !cart.PromoCode.Active)
             {
                 cart.PromoCode = null;
                 _db.Carts.Update(cart);
@@ -46,14 +45,14 @@ namespace Egost.Controllers
             
             ViewBag.PromoCode = cart.PromoCode;
             ViewBag.StoreAddresses = _db.Addresses.Where(ad => ad.StoreAddress);
-            ViewBag.UserAddresses = addresses;
+            ViewBag.UserAddresses = user.Addresses;
 
             return View(cart.CartProducts);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ModifyProducts(int ProductId, uint Count = 1)
+        public IActionResult ModifyProducts(int ProductId, int Count = 1)
         {
             var product = _db.Products.Find(ProductId);
             
