@@ -1,150 +1,386 @@
-﻿@model IEnumerable<Order>
+﻿@model (IEnumerable<Order> orders,IEnumerable<ReturnProductOrder> returnProductOrders)
 @{
-    ViewData["Title"] = "Order";
+    ViewData["Title"] = "Orders";
 }
-<div class="container mt-4">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Created Date</th>
-                <th>Total</th>
-                <th>Payment Method</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in Model)
-            {
-                string rowClass = order.DeletedDateTime != null ? "table-danger" :
-                order.DeliveryDateTime == null ? "table-warning" : "";
-                <tr class="@rowClass" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
-                    <td>@order.Id</td>
-                    <td>@order.CreatedDateTime.ToString("yyyy-MM-dd")</td>
-                    <td>@(order.TotalCents / 100.0) @order.Currency</td>
-                    <td>@order.PaymentMethod</td>
-                    <td>@(order.Processed ? "Processed" : "Pending")</td>
-                    <td>
-                        @if (order.DeletedDateTime == null)
-                        {
-                            <form asp-action="Delete" asp-route-orderId="@order.Id" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        }
-                    </td>
-                </tr>
-                <tr id="order-@order.Id" class="collapse">
-                    <td colspan="6">
-                        <div>
-                            <h5 class="text-primary">Order Products</h5>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Product</th>
-                                        <th>Price (Before Sale)</th>
-                                        <th>Sale Percent</th>
-                                        <th>Quantity</th>
-                                        <th>Total Price (Before Sale)</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var orderProduct in order.OrderProducts)
-                                    {
-                                        var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+<ul class="nav nav-tabs mt-3" role="tablist">
+    <li class="nav-item flex-grow-1 text-center" role="presentation">
+        <a class="nav-link active" data-bs-toggle="tab" href="#Orders" aria-selected="true" role="tab">Orders</a>
+    </li>
+    <li class="nav-item flex-grow-1 text-center" role="presentation">
+        <a class="nav-link" data-bs-toggle="tab" href="#Returns" aria-selected="false" role="tab" tabindex="-1">Returns</a>
+    </li>
+</ul>
+<div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade active show" id="Orders" role="tabpanel">
+        <div class="container mt-4">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Created Date</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.orders)
+                    {
+                        string rowClass = order.Status == OrderStatus.Deleted ? "table-danger" :
+                        order.Status == OrderStatus.Delivered ? "table-success" : "";
+                        <tr class="@rowClass" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
+                            <td>@order.Id</td>
+                            <td>@order.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                            <td>@(order.TotalCents / 100.0) @order.Currency</td>
+                            <td>@order.PaymentMethod</td>
+                            <td>@order.Status</td>
+                            <td>
+                                <a href="@Url.Action("Index", new { Id = order.Id })" class="btn btn-primary btn-sm">View</a>
 
-                                        var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
-                                        <tr>
-                                            <td>
-                                                <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
-                                                    <img src="~/Media/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
-                                                </a>
-                                            </td>
-                                            <td>@orderProduct.Product.Name</td>
-                                            <td>@string.Format("{0:F2}",afterSalePrice) (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
-                                            <td>@orderProduct.SalePercent %</td>
-                                            <td>@orderProduct.Quantity</td>
-                                            <td>@string.Format("{0:F2}",afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
-                                            <td>
-                                                <!-- Button trigger modal -->
-                                                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#returnModal">
-                                                    Return Product
-                                                </button>
+                                @if (order.Status == OrderStatus.Processing && order.Status == OrderStatus.OnTheWay)
+                                {
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete@(order.Id)Modal">
+                                        Delete
+                                    </button>
 
-                                                <!-- Modal -->
-                                                <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5" id="returnModalLabel">Return Product</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <form method="post" asp-area="" asp-controller="Order" asp-action="NewReturnProductOrder" asp-route-OrderId=@order.Id asp-route-OrderProductId=@orderProduct.Id>
-                                                                <div class="modal-body">
-                                                                    <label for="Quantity" class="form-label mt-4">Quantity</label>
-                                                                    <select class="form-select" id="Quantity" name="Quantity">
-                                                                        @for(int i = 1; i <= orderProduct.Quantity; i++)
-                                                                        {
-                                                                            <option value=@i>@i</option>
-                                                                        }
-                                                                    </select>
-
-                                                                    <label class="col-form-label mt-4" for="ReturnReason">Return reason</label>
-                                                                    <input type="text" class="form-control" placeholder="Return reason" id="ReturnReason" name="ReturnReason" required>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                                    <button type="submit" class="btn btn-primary">Submit</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="delete@(order.Id)Modal" tabindex="-1" aria-labelledby="delete@(order.Id)ModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5" id="delete@(order.Id)ModalLabel">Delete Order</h1>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                    @if (order.PaymentMethod == "COD")
-                                    {
-                                        <tr>
-                                            <td>
-                                                <button type="button" class="btn btn-outline-secondary" disabled>
-                                                    <i class="bi bi-cash-coin"></i>
-                                                </button>
-                                            </td>
-                                            <td>Cash on Deleviry Fee:</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td>+ 10 EGP</td>
-                                            <td></td>
-                                        </tr>
-                                    }
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td><strong class="text-danger">PromoCode:</strong></td>
-                                        <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td><strong class="text-success">Total Order:</strong></td>
-                                        <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
-                                        <td></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                                                <form asp-area="" asp-controller="Order" asp-action="DeleteOrder" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                                                    <div class="modal-body">
+                                                        Are you sure you want to delete this order?
+                                                        <table class="table table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Product</th>
+                                                                    <th>Quantity</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach(var op in order.OrderProducts)
+                                                                {
+                                                                    <tr>
+                                                                        <td>@op.Product.Name</td>
+                                                                        <td>@op.Quantity</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                        <tr id="order-@order.Id" class="collapse">
+                            <td colspan="6">
+                                <div>
+                                    <h5 class="text-primary">Address</h5>
+                                    <ul class="mb-5">
+                                        <li><strong>Address Line 1: </strong>@order.Address.AddressLine1</li>
+                                        <li><strong>Address Line 2: </strong>@order.Address.AddressLine2</li>
+                                        <li><strong>Postal Code: </strong>@order.Address.PostalCode</li>
+                                        <li><strong>City: </strong>@order.Address.City</li>
+                                        <li><strong>Country: </strong>@order.Address.Country</li>
+                                        <li><strong>Telephone: </strong>@order.Address.Telephone</li>
+                                    </ul>
+                                    <h5 class="text-primary">Order Products</h5>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Product</th>
+                                                <th>Price (Before Sale)</th>
+                                                <th>Sale Percent</th>
+                                                <th>Quantity</th>
+                                                <th>Total Price (Before Sale)</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var orderProduct in order.OrderProducts)
+                                            {
+                                                var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+
+                                                var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
+                                                <tr>
+                                                    <td>
+                                                        <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
+                                                            <img src="~/Media/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
+                                                        </a>
+                                                    </td>
+                                                    <td>@orderProduct.Product.Name</td>
+                                                    <td>@string.Format("{0:F2}", afterSalePrice) (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
+                                                    <td>@orderProduct.SalePercent %</td>
+                                                    <td>@orderProduct.Quantity</td>
+                                                    <td>@string.Format("{0:F2}", afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                                    <td>
+                                                        @{
+                                                            var notReturned = orderProduct.Quantity - Model.returnProductOrders.Where(rpo => rpo.OrderProduct == orderProduct).Sum(rpo => rpo.Quantity);
+                                                        }
+                                                        @if (order.Status == OrderStatus.Delivered && order.DeliveryDateTime + orderProduct.Warranty < DateTime.Now && notReturned > 0)
+                                                        {
+                                                            <!-- Button trigger modal -->
+                                                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#return@(orderProduct.Id)Modal">
+                                                                Return Product
+                                                            </button>
+
+                                                            <!-- Modal -->
+                                                            <div class="modal fade" id="return@(orderProduct.Id)Modal" tabindex="-1" aria-labelledby="return@(orderProduct.Id)ModalLabel" aria-hidden="true">
+                                                                <div class="modal-dialog">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <h1 class="modal-title fs-5" id="return@(orderProduct.Id)ModalLabel">Return Product</h1>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+                                                                        <form method="post" asp-area="" asp-controller="Order" asp-action="NewReturnProductOrder" asp-route-OrderId=@order.Id asp-route-OrderProductId=@orderProduct.Id>
+                                                                            <div class="modal-body">
+                                                                                <label for="Quantity" class="form-label mt-4">Quantity</label>
+                                                                                <select class="form-select" id="Quantity" name="Quantity">
+                                                                                    @for (int i = 1; i <= notReturned; i++)
+                                                                                    {
+                                                                                        <option value=@i>@i</option>
+                                                                                    }
+                                                                                </select>
+
+                                                                                <label class="col-form-label mt-4" for="ReturnReason">Return reason</label>
+                                                                                <input type="text" class="form-control" placeholder="Return reason" id="ReturnReason" name="ReturnReason" required>
+
+                                                                                <fieldset class="form-group m-4">
+                                                                                    <legend class="mt-4">Shipping Address</legend>
+                                                                                    <div class="form-check">
+                                                                                        <input class="form-check-input" type="radio" name="DeliveryAddress" id="DeliveryToStoreAddress" checked>
+                                                                                        <label class="form-check-label" for="DeliveryToStoreAddress">
+                                                                                            Express Shipping <strong>(To Egost Store - Cairo)</strong>
+                                                                                        </label>
+                                                                                        <table class="table table-striped" id="store-addresses">
+                                                                                            <thead>
+                                                                                                <tr>
+                                                                                                    <th></th>
+                                                                                                    <th>Address Line 1</th>
+                                                                                                    <th>Address Line 2</th>
+                                                                                                    <th>City</th>
+                                                                                                    <th>Country</th>
+                                                                                                    <th>Postal Code</th>
+                                                                                                    <th>Telephone</th>
+                                                                                                </tr>
+                                                                                            </thead>
+                                                                                            <tbody>
+                                                                                                @foreach (var address in ViewBag.StoreAddresses)
+                                                                                                {
+                                                                                                    <tr>
+                                                                                                        <td><input type="radio" value=@address.Id name="addressId" required></td>
+                                                                                                        <td>@address.AddressLine1</td>
+                                                                                                        <td>@address.AddressLine2</td>
+                                                                                                        <td>@address.City</td>
+                                                                                                        <td>@address.Country</td>
+                                                                                                        <td>@address.PostalCode</td>
+                                                                                                        <td>@address.Telephone</td>
+                                                                                                    </tr>
+                                                                                                }
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </div>
+                                                                                    <div class="form-check">
+                                                                                        <input class="form-check-input" type="radio" name="DeliveryAddress" id="DeliveryToUserAddress">
+                                                                                        <label class="form-check-label" for="DeliveryToUserAddress">
+                                                                                            Ship to my Address <strong>(+50 EGP Shipping Fee)</strong>
+                                                                                        </label>
+                                                                                        <table class="table table-striped border-1" id="user-addresses" hidden>
+                                                                                            <thead>
+                                                                                                <tr>
+                                                                                                    <th></th>
+                                                                                                    <th>Address Line 1</th>
+                                                                                                    <th>Address Line 2</th>
+                                                                                                    <th>City</th>
+                                                                                                    <th>Country</th>
+                                                                                                    <th>Postal Code</th>
+                                                                                                    <th>Telephone</th>
+                                                                                                </tr>
+                                                                                            </thead>
+                                                                                            <tbody>
+                                                                                                @foreach (var address in ViewBag.UserAddresses)
+                                                                                                {
+                                                                                                    <tr>
+                                                                                                        <td><input type="radio" value=@address.Id name="addressId" required></td>
+                                                                                                        <td>@address.AddressLine1</td>
+                                                                                                        <td>@address.AddressLine2</td>
+                                                                                                        <td>@address.City</td>
+                                                                                                        <td>@address.Country</td>
+                                                                                                        <td>@address.PostalCode</td>
+                                                                                                        <td>@address.Telephone</td>
+                                                                                                    </tr>
+                                                                                                }
+                                                                                                <tr>
+                                                                                                    <td colspan="7"><a class="btn btn-info w-100" asp-area="Identity" asp-page="/Account/Manage/Addresses">Add/Edit Addresses</a></td>
+                                                                                                </tr>
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </div>
+                                                                                </fieldset>
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (order.PaymentMethod == PaymentMethod.COD)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="btn btn-outline-secondary" disabled>
+                                                            <i class="bi bi-cash-coin"></i>
+                                                        </button>
+                                                    </td>
+                                                    <td>Cash on Deleviry Fee:</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td>+ 10 EGP</td>
+                                                    <td></td>
+                                                </tr>
+                                            }
+                                            @if (!order.Address.StoreAddress)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="btn btn-outline-secondary" disabled>
+                                                            <i class="bi bi-truck"></i>
+                                                        </button>
+                                                    </td>
+                                                    <td>Deleviry Fee:</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td>+ 50 EGP</td>
+                                                    <td></td>
+                                                </tr>
+                                            }
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><strong class="text-danger">PromoCode:</strong></td>
+                                                <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><strong class="text-success">Total Order:</strong></td>
+                                                <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="Returns" role="tabpanel">
+        <div class="container mt-4">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Return Product Order ID</th>
+                        <th>Returned Product</th>
+                        <th>Order Id</th>
+                        <th>Order Product Id</th>
+                        <th>Return Reason</th>
+                        <th>Quantity</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var returnProductOrder in Model.returnProductOrders)
+                    {
+                        string rowClass = returnProductOrder.DeletedDateTime != null ? "table-danger" :
+                        returnProductOrder.ReturnedDateTime == null ? "table-warning" : "";
+                        <tr>
+                            <td>@returnProductOrder.Id</td>
+                            <td>
+                                <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@returnProductOrder.OrderProduct.Product.Id>
+                                    @returnProductOrder.OrderProduct.Product.Name
+                                </a>
+                            </td>
+                            <td>@returnProductOrder.Order.Id</td>
+                            <td>@returnProductOrder.OrderProduct.Id</td>
+                            <td>@returnProductOrder.ReturnReason</td>
+                            <td>@returnProductOrder.Quantity</td>
+                            <td>@returnProductOrder.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                            @if (returnProductOrder.DeletedDateTime != null)
+                            {
+                                <td>Deleted</td>
+                            }
+                            else if (returnProductOrder.ReturnedDateTime != null)
+                            {
+                                <td>Returned</td>
+                            }
+                            else
+                            {
+                                <td>Pending</td>
+                            }
+                            <td>
+                                @if (returnProductOrder.Status == ReturnStatus.Processing && returnProductOrder.Status == ReturnStatus.OnTheWay)
+                                {
+                                    <form asp-area="" asp-controller="Order" asp-action="DeleteReturnProductOrder" asp-route-returnProductOrderId="@returnProductOrder.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Do you want to proceed deleting this return order [@returnProductOrder.OrderProduct.Product.Name]?');">Delete</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+@section Scripts{
+    <script>
+        // Choosing mobile wallet in payment methods option
+        const storeAddresses = document.getElementById("store-addresses");
+        const storeRadio = document.getElementById("DeliveryToStoreAddress");
+        const userAddresses = document.getElementById("user-addresses");
+        const userRadio = document.getElementById("DeliveryToUserAddress");
+
+        storeRadio.addEventListener("change", function () {
+            storeAddresses.removeAttribute("hidden");
+            userAddresses.setAttribute("hidden", "");
+        });
+
+        userRadio.addEventListener("change", function () {
+            userAddresses.removeAttribute("hidden");
+            storeAddresses.setAttribute("hidden", "");
+        });
+    </script>
+}
