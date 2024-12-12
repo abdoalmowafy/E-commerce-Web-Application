@@ -45,49 +45,6 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                 user.Cart = cart;
             }
         }
-
-        var DeletedUserEntries = UserEntries.Where(e => e.State == EntityState.Deleted).ToList();
-        foreach (var entry in DeletedUserEntries)
-        {
-            var user = entry.Entity;
-
-            var UserOrders = user.Orders;
-            foreach (var order in UserOrders)
-            {
-                if ( order.DeletedDateTime == null && order.DeliveryDateTime == null 
-                    && (order.PaymentMethod == PaymentMethod.COD || !order.Processed))
-                {
-                    foreach (var orderProduct in order.OrderProducts)
-                    {
-                        orderProduct.Product.SKU += orderProduct.Quantity;
-                        Products.Update(orderProduct.Product);
-                    }
-                    order.DeletedDateTime = DateTime.Now;
-                }
-                order.User = null;
-                Orders.Update(order);
-            }
-
-            var UserEdits = user.EditsHistory;
-            if (UserEdits != null)
-            {
-                foreach (var edit in UserEdits)
-                {
-                    EditHistories.Remove(edit);
-                }
-            }
-
-            var cart = user.Cart;
-            var cartProducts = cart.CartProducts;
-            if (cartProducts != null)
-            {
-                foreach (var cp in cartProducts)
-                {
-                    CartProducts.Remove(cp);
-                }
-            }
-            Carts.Remove(cart);
-        }
         return await base.SaveChangesAsync(cancellationToken);
     }
 
@@ -112,7 +69,9 @@ public class EgostContext(DbContextOptions<EgostContext> options) : IdentityDbCo
                     var edit = new EditHistory
                     {
                         Editor = currentUser,
-                        Field = prop.Metadata.Name,
+                        EditedType = entityType.Name,
+                        EditedId = entityType.GetProperty("Id").GetValue(editedObj).ToString(),
+                        EditedField = prop.Metadata.Name,
                         OldData = prop.OriginalValue?.ToString(),
                         NewData = prop.CurrentValue?.ToString()
                     };
