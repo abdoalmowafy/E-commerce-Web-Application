@@ -4,6 +4,7 @@ using Egost.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Egost.Migrations
 {
     [DbContext(typeof(EgostContext))]
-    partial class EgostContextModelSnapshot : ModelSnapshot
+    [Migration("20241205020527_add status columns")]
+    partial class addstatuscolumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -305,7 +308,7 @@ namespace Egost.Migrations
                     b.Property<int>("DeletedId")
                         .HasColumnType("int");
 
-                    b.Property<string>("DeletedType")
+                    b.Property<string>("DeletedModelName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -334,20 +337,12 @@ namespace Egost.Migrations
                     b.Property<DateTime>("EditDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("EditedField")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EditedId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EditedType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("EditorId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NewData")
                         .IsRequired()

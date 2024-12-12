@@ -7,7 +7,7 @@ namespace Egost.Models
     {
         [Key] public int Id { get; set; }
         [Required] public User? Deleter { get; set; }
-        [Required] public required string DeletedModelName { get; set; }
+        [Required] public required string DeletedType { get; set; }
         [Required] public int DeletedId { get; set; }
         [Required][DataType(DataType.DateTime)] public DateTime DeleteDateTime { get; set; } = DateTime.Now;
     }

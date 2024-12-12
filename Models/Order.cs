@@ -17,17 +17,27 @@ namespace Egost.Models
         [Required] public string Currency { get; set; } = "EGP";
         [Required] public PaymentMethod PaymentMethod { get; set; } 
         [Required] public bool DeliveryNeeded { get; set; } = false;
-        [Required] public bool Processed { get; set; }
+        [Required] public OrderStatus Status { get; set; }
         public int? PaymobOrderId { get; set; }
         [Required] public required Address Address { get; set; }
         [Required][DataType(DataType.DateTime)] public DateTime CreatedDateTime { get; set; } = DateTime.Now;
         [DataType(DataType.DateTime)] public DateTime? DeliveryDateTime { get; set; }
         [DataType(DataType.DateTime)] public DateTime? DeletedDateTime { get; set; }
     }
+
     public enum PaymentMethod
     {
         COD,
         CreditCard,
         MobileWallet
+    }
+
+    public enum OrderStatus
+    {
+        Paying,
+        Processing,
+        OnTheWay,
+        Delivered,
+        Deleted
     }
 }
