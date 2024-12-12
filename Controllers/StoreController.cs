@@ -3,6 +3,7 @@ using Egost.Data;
 using Egost.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
@@ -20,15 +21,12 @@ namespace Egost.Controllers
             IEnumerable<OrderProduct> OrderedProducts = _db.OrderProducts.Include(op => op.Product);
             IEnumerable<Product> NonDeletedAvailableProducts = _db.Products
                 .Include(p => p.Category).Where(p => p.DeletedDateTime == null && p.SKU > 0);
-
-            IDictionary<Product, int> freq = new Dictionary<Product, int>();
-            foreach (var product in NonDeletedAvailableProducts) freq.Add(product, 0);
+            var freq = NonDeletedAvailableProducts.ToDictionary(p => p, _ => 0UL);
             foreach (var op in OrderedProducts)
             {
                 var product = op.Product;
                 if (product.DeletedDateTime == null && product.SKU > 0)
                 {
-                    freq.TryAdd(product, 0);
                     freq[product]++;
                 }
             }
@@ -41,7 +39,7 @@ namespace Egost.Controllers
             return View((orderedByMostOrderes, productsOnSale, productsAddedLastWeek));
         }
 
-        public IActionResult Search(string keyWord, string categoryName = "All", bool includeOutOfStock = false, bool includeDeleted = false)
+        public IActionResult Search(string keyWord, string categoryName = "All", bool includeOutOfStock = false, bool includeDeleted = false, int pageIndex = 1)
         {
             Category category = _db.Categories.FirstOrDefault(c => c.Name == categoryName);
             // Errors
@@ -52,20 +50,11 @@ namespace Egost.Controllers
             }
 
             // Implementation
-            IEnumerable<Product> Products = _db.Products.Include(p => p.Category);
+            var Products = _db.Products.Include(p => p.Category).AsQueryable();
 
             if (!string.IsNullOrEmpty(keyWord))
             {
-                Products = Products.Where(Product => Product.Name.Contains(keyWord, StringComparison.OrdinalIgnoreCase) ||
-                                            Product.Description.Contains(keyWord, StringComparison.OrdinalIgnoreCase));
-                if (Products.Any())
-                {
-                    TempData["info"] = $"{Products.Count()} results For \"{keyWord}\"";
-                }
-                else
-                {
-                    TempData["fail"] = $"No Products Found For \"{keyWord}\"!";
-                }
+                Products = Products.Where(Product => Product.Name.Contains(keyWord) || Product.Description.Contains(keyWord));
             }
 
             // Filter by category if provided
@@ -75,14 +64,13 @@ namespace Egost.Controllers
             }
 
             // Filter by deleted if included
-            if (includeDeleted)
-            {
-                if (!User.IsInRole("Admin") && !User.IsInRole("Moderator"))
-                    return Forbid(); // If user is not authorized, return 403 Forbidden
-            }
-            else
+            if (!includeDeleted)
             {
                 Products = Products.Where(p => p.DeletedDateTime == null);
+            }
+            else if (!User.IsInRole("Admin") && !User.IsInRole("Moderator"))
+            {
+                return Forbid();
             }
 
             // Filter by in stock
@@ -92,7 +80,7 @@ namespace Egost.Controllers
             }
 
             // Add Search to db
-            if (keyWord != null)
+            if (!string.IsNullOrEmpty(keyWord))
             {
                 _db.Searches.Add(new()
                 {
@@ -109,11 +97,11 @@ namespace Egost.Controllers
             TempData["includeOutOfStock"] = includeOutOfStock;
             TempData["IncludeDeleted"] = includeDeleted;
 
-            return View(Products);
+            return View(Products.ToPaginatedList(pageIndex, 10));
         }
 
 
-        [Route("{id}")]
+        [Route("product/{id:int}")]
         public IActionResult FullView(int Id)
         {
             var Product = _db.Products
@@ -127,7 +115,7 @@ namespace Egost.Controllers
             // Increase product views
             Product.Views++;
             _db.Products.Update(Product);
-            _db.SaveChanges();
+            _db.SaveChanges(_db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name));
 
             // product media
             string path = Path.Combine("wwwroot\\Media\\ProductMedia\\", Product.Id.ToString());
@@ -136,12 +124,15 @@ namespace Egost.Controllers
             ViewBag.FileNames = fileNamesOnly;
             ViewBag.inCart = false;
             ViewBag.inWishlist = false;
-            ViewBag.reviewed = true;
+            ViewBag.reviewable = false;
             if (User.Identity.IsAuthenticated)
             {
                 var user = _db.Users
                     .Include(u => u.Cart)
                         .ThenInclude(c => c.CartProducts)
+                    .Include(u => u.Orders)
+                        .ThenInclude(o => o.OrderProducts)
+                            .ThenInclude(op => op.Product)
                     .Include(u => u.WishList)
                     .FirstOrDefault(u => u.UserName == User.Identity.Name);
 
@@ -156,20 +147,21 @@ namespace Egost.Controllers
                 {
                     ViewBag.inWishlist = true;
                 }
-                if (!Product.Reviews.Any(rev => rev.Reviewer == user && rev.DeletedDateTime == null))
+                if (!Product.Reviews.Any(rev => rev.Reviewer == user && rev.DeletedDateTime == null) 
+                    && user.Orders.SelectMany(o => o.OrderProducts).Any(op => op.Product == Product))
                 {
-                    ViewBag.reviewed = false;
+                    ViewBag.reviewable = true;
                 }
             }
             return View(Product);
         }
 
         [Authorize]
-        public IActionResult IndexWishlist()
+        public IActionResult IndexWishlist(int pageIndex = 1)
         {
-            var user = _db.Users.Include(u => u.WishList).FirstOrDefault(u => u.UserName == User.Identity!.Name);
+            var user = _db.Users.Include(u => u.WishList).ThenInclude(p => p.Category).FirstOrDefault(u => u.UserName == User.Identity!.Name);
 
-            return View(user!.WishList);
+            return View(user.WishList.ToPaginatedList(pageIndex, 10));
         }
 
         [Authorize]
@@ -177,13 +169,11 @@ namespace Egost.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ModifyWishlist(int ProductId)
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+            var user = _db.Users.Include(u => u.WishList).FirstOrDefault(u => u.UserName == User.Identity.Name);
             var product = _db.Products.Find(ProductId);
 
-            if (user.WishList.IsNullOrEmpty())
-            {
-                user.WishList = [product];
-            }
+            if (product == null) return NotFound();
+
             if (!user.WishList.Remove(product))
             {
                 user.WishList.Add(product);
@@ -198,9 +188,9 @@ namespace Egost.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddReview(int ProductId, byte rating, string text)
+        public IActionResult AddReview(int productId, byte rating, string text)
         {
-            var product = _db.Products.Find(ProductId);
+            var product = _db.Products.Find(productId);
 
             if (product == null) return NotFound();
 
@@ -214,7 +204,7 @@ namespace Egost.Controllers
             {
                 TempData["info"] = "You can only post one review for the same product!";
             }
-            else if (!user.Orders.SelectMany(o => o.OrderProducts).Any(op => op.Product.Id == ProductId))
+            else if (!user.Orders.SelectMany(o => o.OrderProducts).Any(op => op.Product.Id == productId))
             {
                 TempData["info"] = "Can't review a product you didn't buy!";
             }
@@ -222,6 +212,7 @@ namespace Egost.Controllers
             {
                 Review review = new()
                 {
+                    Product = product,
                     Reviewer = user,
                     Rating = rating,
                     Text = text,
@@ -232,17 +223,23 @@ namespace Egost.Controllers
                 _db.SaveChanges();
             }
 
-            return RedirectToAction(nameof(FullView), new { Id = ProductId });
+            return RedirectToAction(nameof(FullView), new { Id = productId });
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditReview(int productId, byte rating, string text)
+        public IActionResult EditReview(int reviewId, byte rating, string text)
         {
+            var review = _db.Reviews
+               .Include(r => r.Reviewer)
+               .FirstOrDefault(r => r.Id == reviewId);
+
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
-            var review = _db.Reviews.FirstOrDefault(rev => rev.Reviewer == user && rev.ProductId == productId);
-            if (review == null) return NotFound();
+
+            if (review == null || review.DeletedDateTime.HasValue) return NotFound();
+
+            if (review.Reviewer != user && !User.IsInRole("Admin") && !User.IsInRole("Moderator")) return Forbid();
             
             if(review.Rating != rating) review.Rating = rating;
             if(review.Text != text) review.Text = text;
@@ -255,10 +252,17 @@ namespace Egost.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteReview(int ReviewId)
+        public IActionResult DeleteReview(int reviewId)
         {
-            var review = _db.Reviews.Find(ReviewId);
-            if (review == null) return NotFound();
+            var review = _db.Reviews
+               .Include(r => r.Reviewer)
+               .FirstOrDefault(r => r.Id == reviewId);
+
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+
+            if (review == null || review.DeletedDateTime.HasValue) return NotFound();
+
+            if (review.Reviewer != user && !User.IsInRole("Admin") && !User.IsInRole("Moderator")) return Forbid();
 
             review.DeletedDateTime = DateTime.Now;
             _db.Reviews.Update(review);
