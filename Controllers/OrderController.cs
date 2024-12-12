@@ -23,23 +23,38 @@ namespace Egost.Controllers
         public IActionResult Index()
         {
             var user = _db.Users
+                .Include(u => u.Addresses)
                 .Include(u => u.Orders)
                     .ThenInclude(o => o.OrderProducts)
                         .ThenInclude(op => op.Product)
                 .Include(u => u.Orders)
                     .ThenInclude(o => o.PromoCode)
+                .Include(u => u.Orders)
+                    .ThenInclude(o => o.Address)
+                .Include(u => u.ReturnProductOrders)
+                    .ThenInclude(rpo => rpo.Address)
+                .Include(u => u.ReturnProductOrders)
+                    .ThenInclude(rpo => rpo.Order)
+                .Include(u => u.ReturnProductOrders)
+                    .ThenInclude(rpo => rpo.OrderProduct)
+                        .ThenInclude(op => op.Product)
                 .FirstOrDefault(u => u.UserName == User.Identity!.Name);
 
             IEnumerable<Order> Orders = user.Orders
-                .Where(o => o.Processed).Reverse();
+                .Where(o => o.Status != OrderStatus.Paying).OrderByDescending(o => o.CreatedDateTime);
 
-            return View(Orders);
+            IEnumerable<ReturnProductOrder> returnProductOrders = user.ReturnProductOrders.OrderByDescending(o => o.CreatedDateTime);
+
+            ViewBag.StoreAddresses = _db.Addresses.Where(ad => ad.StoreAddress);
+            ViewBag.UserAddresses = user.Addresses;
+
+            return View((Orders, returnProductOrders));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> NewOrder(string PaymentMethod, string? identifier, int ShippingAddressId)
+        public async Task<IActionResult> NewOrder(string paymentMethod, string? identifier, int shippingAddressId)
         {
             var user = _db.Users
                 .Include(u => u.Orders)
@@ -51,38 +66,37 @@ namespace Egost.Controllers
                 .Include(u => u.Addresses)
                 .FirstOrDefault(u => u.UserName == User.Identity!.Name)!;
 
-            if(user.Orders.Any(o => !o.DeliveryDateTime.HasValue))
+            if(user.Orders.Any(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Deleted))
             {
-                TempData["fail"] = "Can't have two orders at one time!\nContact us!";
-                return RedirectToAction("Index", "Contact");
+                TempData["fail"] = "Can't have two orders at one time!\nContact us at contact@Egost.com!";
+                return RedirectToAction("Index", "Cart");
             }
 
             var cart = user.Cart;
             var cartProducts = cart.CartProducts;
             var promo = cart.PromoCode;
-            Address? address = _db.Addresses.Find(ShippingAddressId);
+            Address? address = _db.Addresses.Find(shippingAddressId);
 
-            if (cartProducts.IsNullOrEmpty() || // Possible cartProducts errors!
-                cartProducts.Any(cp => cp.Quantity < 1 || cp.Product.SKU < cp.Quantity || cp.Product.DeletedDateTime.HasValue) ||
-                (promo != null && (promo.DeletedDateTime.HasValue || !promo.Active)) || // Possible promocode errors!
+            if (cartProducts.IsNullOrEmpty() || cartProducts.Any(cp => cp.Quantity < 1 || cp.Product.SKU < cp.Quantity || cp.Product.DeletedDateTime.HasValue) || // Possible cartProducts errors!
+                (promo != null && !promo.Active) || // Possible promocode errors!
                 address == null || (!address.StoreAddress && !user.Addresses.Contains(address)) || // Possible input errors!
-                !Enum.TryParse<PaymentMethod>(PaymentMethod, out var parsedPaymentMethod))
+                !Enum.TryParse<PaymentMethod>(paymentMethod, out var parsedPaymentMethod))
             {
                 TempData["fail"] = "Something went wrong!";
                 return RedirectToAction("Index", "Cart");
             }
 
-            bool NeedProcessing = true;
-            ulong Fee = 0;
-            if (PaymentMethod == "COD")
+            OrderStatus orderStatus = OrderStatus.Paying;
+            long Fee = address.StoreAddress ? 0L : 5000L;
+            if (parsedPaymentMethod == PaymentMethod.COD)
             {
                 Fee += 1000;
-                NeedProcessing = false;
+                orderStatus = OrderStatus.Processing;
             }
 
-            
+
             // Creating Order Instance
-            ulong totalCentsNoPromo = 0;
+            long totalCentsNoPromo = 0;
             var orderProducts = new List<OrderProduct>(cartProducts.Count);
             foreach (var cartProduct in cartProducts)
             {
@@ -93,7 +107,7 @@ namespace Egost.Controllers
                     Quantity = cartProduct.Quantity,
                     Warranty = cartProduct.Product.Warranty,
                 };
-                totalCentsNoPromo += cartProduct.Product.PriceCents * cartProduct.Quantity * Convert.ToByte(100 - cartProduct.Product.SalePercent) / 100;
+                totalCentsNoPromo += cartProduct.Product.PriceCents * cartProduct.Quantity * (100 - cartProduct.Product.SalePercent) / 100;
                 _db.OrderProducts.Add(orderProduct);
                 orderProducts.Add(orderProduct);
                 cartProduct.Product.SKU -= cartProduct.Quantity;
@@ -102,25 +116,28 @@ namespace Egost.Controllers
 
             Order order = new()
             {
+                UserId = user.Id,
                 User = user,
                 PromoCode = promo,
-                PaymentMethod = PaymentMethod,
-                Processed = !NeedProcessing,
-                TotalCents = Fee + (promo == null ? totalCentsNoPromo : totalCentsNoPromo * Convert.ToByte(100 - promo.Percent) / 100),
+                PaymentMethod = parsedPaymentMethod,
+                Status = orderStatus,
+                TotalCents = Fee + (promo == null ? totalCentsNoPromo 
+                : promo.MaxSaleCents == null ? totalCentsNoPromo * (100 - promo.Percent) / 100 
+                : totalCentsNoPromo - Math.Min(totalCentsNoPromo * promo.Percent / 100, promo.MaxSaleCents.Value)),
                 DeliveryNeeded = !address.StoreAddress,
                 OrderProducts = orderProducts,
                 Address = address
             };
 
             // Processing Order
-            if (PaymentMethod == "COD")
+            if (parsedPaymentMethod == PaymentMethod.COD)
             {
                 _db.Orders.Add(order);
                 _db.SaveChanges();
                 TempData["success"] = "Order was processed successfully!";
                 return RedirectToAction("Index");
             }
-            else if (PaymentMethod == "CreditCard") 
+            else if (parsedPaymentMethod == PaymentMethod.CreditCard) 
             {
                 string token = await PaymentApiFlow(order);
                 return CardPayment(token);
@@ -134,59 +151,20 @@ namespace Egost.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public void PaymobResponse(string response)
-        {
-            var responseObject = JsonSerializer.Deserialize<dynamic>(response);
-            int? OrderId = int.Parse(responseObject.GetSection["order"]);
-            var order = _db.Orders
-                .Include(o => o.User)
-                    .ThenInclude(u => u.Cart)
-                        .ThenInclude(c => c.CartProducts)
-                .Include(o => o.OrderProducts)
-                    .ThenInclude(cp => cp.Product)
-                .First(o => o.PaymobOrderId == OrderId);
-            var cart = order.User.Cart;
-
-            if (responseObject.GetSection["success"])
-            {
-                // Flag order as processed
-                order.Processed = true;
-                _db.Orders.Update(order);
-
-                // Empty Cart
-                _db.CartProducts.RemoveRange(cart.CartProducts);
-                cart.CartProducts = [];
-                cart.PromoCode = null;
-                _db.Carts.Update(cart);
-            }
-            else
-            {
-                // Delete order
-                foreach (OrderProduct orderProduct in order.OrderProducts)
-                {
-                    orderProduct.Product.SKU += orderProduct.Quantity;
-                    _db.Products.Update(orderProduct.Product);
-                    _db.OrderProducts.Remove(orderProduct);
-                }
-                _db.Orders.Remove(order);
-            }
-            _db.SaveChanges();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
-        public IActionResult Delete(int? OrderId)
+        public IActionResult DeleteOrder(int? orderId)
         {
             var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
             var order = _db.Orders
                 .Include(o => o.OrderProducts)
-                    .ThenInclude(op => op.Product)  
-                .FirstOrDefault(o => o.Id == OrderId);
+                    .ThenInclude(op => op.Product)
+                .Include(o => o.User)
+                .FirstOrDefault(o => o.Id == orderId);
 
-            if (order == null || order.User != user)
+            if (order == null || order.Status != OrderStatus.Processing
+                || ( order.User != user && !(User.IsInRole("Admin") || User.IsInRole("Moderator"))))
             {
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
             // Delete order
@@ -196,7 +174,14 @@ namespace Egost.Controllers
                 _db.Products.Update(orderProduct.Product);
             }
             order.DeletedDateTime = DateTime.Now;
+            order.Status = OrderStatus.Deleted;
             _db.Orders.Update(order);
+            _db.DeletesHistory.Add(new()
+            {
+                Deleter = user,
+                DeletedType = nameof(Order),
+                DeletedId = orderId.Value
+            });
             _db.SaveChanges();
             return RedirectToAction("Index");
         }
@@ -204,29 +189,69 @@ namespace Egost.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public IActionResult NewReturnProductOrder(int? OrderId, int? OrderProductId, string ReturnReason, uint Quantity = 1)
+        public IActionResult NewReturnProductOrder(int? OrderId, int? OrderProductId, int? addressId, string ReturnReason, int Quantity = 1)
         {
-            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity.Name);
+            var user = _db.Users.Include(u => u.Addresses).FirstOrDefault(u => u.UserName == User.Identity.Name);
             var order = _db.Orders.Include(o => o.User).Include(o => o.OrderProducts).FirstOrDefault(o => o.Id == OrderId);
             var orderProduct = order.OrderProducts.FirstOrDefault(op => op.Id == OrderProductId);
+            var address = _db.Addresses.Find(addressId);
+            var returned = _db.ReturnProductOrders.Where(rpo => rpo.OrderProduct == orderProduct).Sum(rpo => rpo.Quantity);
 
-            if (order == null || order.User != user || orderProduct == null || orderProduct.Quantity < Quantity 
-                || order.CreatedDateTime + orderProduct.Warranty < DateTime.Now || ReturnReason.IsNullOrEmpty())
+            if (order == null || order.Status != OrderStatus.Delivered 
+                || order.User != user || orderProduct == null || Quantity > orderProduct.Quantity - returned 
+                || order.CreatedDateTime + orderProduct.Warranty < DateTime.Now || ReturnReason.IsNullOrEmpty()
+                || address == null || !user.Addresses.Contains(address))
             {
-                return Redirect("/");
+                return NotFound();
             }
 
-            _db.ReturnProductOrders.Add(new()
+            var returnProductOrder = new ReturnProductOrder()
             {
                 Order = order,
+                Status = ReturnStatus.Processing,
                 OrderProduct = orderProduct,
+                Address = address,
                 Quantity = Quantity,
                 ReturnReason = ReturnReason,
-            });
-            orderProduct.PartiallyOrFullyReturnedDateTime = DateTime.Now;
-            _db.OrderProducts.Update(orderProduct);
+            };
+            
+            _db.ReturnProductOrders.Add(returnProductOrder);
+            user.ReturnProductOrders.Add(returnProductOrder);
+            _db.Users.Update(user);
             _db.SaveChanges();
 
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public IActionResult DeleteReturnProductOrder(int? returnProductOrderId)
+        {
+            var user = _db.Users.FirstOrDefault(u => u.UserName == User.Identity!.Name);
+            var returnProductOrder = _db.ReturnProductOrders
+                .Include(rpo => rpo.Order)
+                    .ThenInclude(o => o.User)
+                .Include(rpo => rpo.OrderProduct)
+                    .ThenInclude(op => op.Product)
+                .FirstOrDefault(rpo => rpo.Id == returnProductOrderId);
+
+            if (returnProductOrder == null || returnProductOrder.Status == ReturnStatus.Returned || returnProductOrder.Status == ReturnStatus.Deleted
+                || (returnProductOrder.Order.User != user && !(User.IsInRole("Admin") || User.IsInRole("Moderator"))))
+            {
+                return NotFound();
+            }
+
+            returnProductOrder.DeletedDateTime = DateTime.Now;
+            returnProductOrder.Status = ReturnStatus.Deleted;
+            _db.ReturnProductOrders.Update(returnProductOrder);
+            _db.DeletesHistory.Add(new()
+            {
+                Deleter = user,
+                DeletedType = nameof(ReturnProductOrder),
+                DeletedId = returnProductOrderId.Value
+            });
+            _db.SaveChanges();
             return RedirectToAction("Index");
         }
 
@@ -387,6 +412,46 @@ namespace Egost.Controllers
                 throw new Exception($"Authentication Request failed: {response.StatusCode}");
             }
             return Redirect(RedirectionURL);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public void PaymobResponse(string response)
+        {
+            var responseObject = JsonSerializer.Deserialize<dynamic>(response);
+            int? OrderId = int.Parse(responseObject.GetSection["order"]);
+            var order = _db.Orders
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Cart)
+                        .ThenInclude(c => c.CartProducts)
+                .Include(o => o.OrderProducts)
+                    .ThenInclude(cp => cp.Product)
+                .First(o => o.PaymobOrderId == OrderId);
+            var cart = order.User.Cart;
+
+            if (responseObject.GetSection["success"])
+            {
+                // Flag order as processed
+                order.Status = OrderStatus.Processing;
+                _db.Orders.Update(order);
+
+                // Empty Cart
+                _db.CartProducts.RemoveRange(cart.CartProducts);
+                cart.CartProducts = [];
+                cart.PromoCode = null;
+                _db.Carts.Update(cart);
+            }
+            else
+            {
+                // Delete order
+                foreach (OrderProduct orderProduct in order.OrderProducts)
+                {
+                    orderProduct.Product.SKU += orderProduct.Quantity;
+                    _db.Products.Update(orderProduct.Product);
+                    _db.OrderProducts.Remove(orderProduct);
+                }
+                _db.Orders.Remove(order);
+            }
+            _db.SaveChanges();
         }
     }
 }
