@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Product>
+﻿@model PaginatedList<Product>
 
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<Egost.Areas.Identity.Data.User> SignInManager
@@ -87,7 +87,12 @@
                                 <h5 class="mb-1">@product.Name</h5>
                                 <small class="text-muted">@product.Category.Name</small>
                                 <div>
-                                    <strong>Price:</strong> @(product.PriceCents * Convert.ToByte(100 - @product.SalePercent) / 10000.0) EGP   <del class="text-muted">@(product.SalePercent > 0 ? $"({product.PriceCents / 100.0} EGP)" : "")</del>
+                                    @*<strong>EGP @((product.PriceCents * (100 - @product.SalePercent) / 10000.0).ToString("F2"))</strong>*@
+                                    <text class="d-flex"><text class="text-muted mt-1 font-italic">EGP </text><h2>@(product.PriceCents * (100 - @product.SalePercent) / 10000)</h2><text class="mt-1" style="font-style:italic">@(product.PriceCents * (100 - @product.SalePercent) % 10000 / 100) </text></text>
+                                    @if (product.SalePercent > 0){
+                                        <del class="text-muted">(@(product.PriceCents / 100.0))</del>
+                                        <div class="badge bg-success">@product.SalePercent %</div>
+                                    }                                        
                                 </div>
                             </div>
                         </div>
@@ -96,4 +101,44 @@
             </div>
         </div>
     </div>
+
+
+
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Search"
+                    asp-route-keyWord="@keyWord"
+                    asp-route-categoryName="@categoryName"
+                    asp-route-includeOutOfStock="@includeOutOfStock"
+                    asp-route-includeDeleted="@includeDeleted"
+                    asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
+                </li>
+            }
+            @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Search"
+                    asp-route-keyWord="@keyWord"
+                    asp-route-categoryName="@categoryName"
+                    asp-route-includeOutOfStock="@includeOutOfStock"
+                    asp-route-includeDeleted="@includeDeleted"
+                    asp-route-pageIndex="@i">@i</a>
+                </li>
+            }
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Search"
+                       asp-route-keyWord="@keyWord"
+                       asp-route-categoryName="@categoryName"
+                       asp-route-includeOutOfStock="@includeOutOfStock"
+                       asp-route-includeDeleted="@includeDeleted"
+                       asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
+                </li>
+            }
+        </ul>
+    </nav>
 </div>

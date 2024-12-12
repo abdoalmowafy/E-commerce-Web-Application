@@ -14,11 +14,5 @@
 //});
 
 
-// Main and Minor Images
-var mainImg = document.getElementById("mainImg")
-var minorImgs = document.getElementsByClassName("minorImg");
-for (var i = 0; i < minorImgs.length; i++) {
-    minorImgs[i].addEventListener("mouseover", function () {
-        mainImg.src = this.src;
-    });
-}
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))

@@ -1,12 +1,21 @@
 ﻿@model Product
+@using Egost.Areas.Identity.Data
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<Egost.Areas.Identity.Data.User> SignInManager
-@inject UserManager<Egost.Areas.Identity.Data.User> UserManager
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 @{
-    ViewBag.Title = Model.Name;
-    List<string> imageUrls = ViewBag.FileNames;
-    bool inCart = ViewBag.inCart;
-    bool inWishlist = ViewBag.inWishlist;
+    ViewData["Title"] = Model.Name;
+
+    bool AdminOrModerator = false;
+    if (SignInManager.IsSignedIn(User))
+    {
+        User user = UserManager.GetUserAsync(User).Result!;
+        if (await UserManager.IsInRoleAsync(user, "Admin") || await UserManager.IsInRoleAsync(user, "Moderator"))
+        {
+            AdminOrModerator = true;
+        }
+    }
 }
 
 <div class="container my-5">
@@ -15,7 +24,7 @@
         <div class="col-md-6">
             <div class="swiper main-slider mb-4">
                 <div class="swiper-wrapper">
-                    @foreach (var imageUrl in imageUrls)
+                    @foreach (var imageUrl in ViewBag.FileNames)
                     {
                         <div class="swiper-slide">
                             <img src="~/Media/ProductMedia/@Model.Id/@imageUrl" class="img-fluid w-100 h-100" style="object-fit: cover;"/>
@@ -27,7 +36,7 @@
             </div>
             <div thumbsSlider="" class="swiper thumbs-slider">
                 <div class="swiper-wrapper justify-content-center">
-                    @foreach (var imageUrl in imageUrls)
+                    @foreach (var imageUrl in ViewBag.FileNames)
                     {
                         <div class="swiper-slide">
                             <img src="~/Media/ProductMedia/@Model.Id/@imageUrl" height="50px" width="100%"/>
@@ -61,23 +70,19 @@
                 </form>
 
                 <form method="post" asp-area="" asp-controller="Store" asp-action="ModifyWishlist" asp-route-ProductId=@Model.Id>
-                    <button type="submit" class="btn @(inWishlist ? "btn-danger" : "btn-outline-secondary")">
-                        <i class="bi @(inWishlist ? "bi-bookmark-heart-fill" : "bi-bookmark-heart")"></i>
+                    <button type="submit" class="btn @(ViewBag.inWishlist ? "btn-danger" : "btn-outline-secondary")">
+                        <i class="bi @(ViewBag.inWishlist ? "bi-bookmark-heart-fill" : "bi-bookmark-heart")"></i>
                     </button>
                 </form>
             </div>
         
             <!-- Admin Edit and Chart View Buttons -->
-            @if (SignInManager.IsSignedIn(User))
+            @if (AdminOrModerator)
             {
-                Egost.Areas.Identity.Data.User user = UserManager.GetUserAsync(User).Result!;
-                @if (await UserManager.IsInRoleAsync(user, "Admin") || await UserManager.IsInRoleAsync(user, "Moderator"))
-                {
-                    <div class="d-flex gap-3 mt-5">
-                        <a class="btn btn-info flex-grow-1 btn-sm" asp-controller="Manage" asp-action="EditProduct" asp-route-id="@Model.Id">Modify &nbsp; <i class="bi bi-wrench"></i></a>
-                        <a class="btn btn-dark flex-grow-1 btn-sm" asp-controller="Manage" asp-action="ProductCharts" asp-route-id="@Model.Id">Charts &nbsp; <i class="bi bi-graph-up-arrow"></i></a>
-                    </div>
-                }
+                <div class="d-flex gap-3 mt-5">
+                    <a class="btn btn-info flex-grow-1 btn-sm" asp-controller="Manage" asp-action="EditProduct" asp-route-id="@Model.Id">Modify &nbsp; <i class="bi bi-wrench"></i></a>
+                    <a class="btn btn-dark flex-grow-1 btn-sm" asp-controller="Manage" asp-action="ProductCharts" asp-route-id="@Model.Id" asp-route-starting=@DateTime.MinValue>Charts &nbsp; <i class="bi bi-graph-up-arrow"></i></a>
+                </div>
             }
         </div>
         
@@ -99,14 +104,88 @@
 
             <!-- Reviews -->
             <div class="mt-4">
-                <h5>Reviews:</h5>
+                @if (Model.Reviews.Count > 0)
+                {
+                    <h5>Reviews:</h5>
+                }
+                    
                 @foreach (var review in Model.Reviews)
                 {
-                    <div class="review mb-2">
+                    <div class="review mb-2 p-3 border border-opacity-50 rounded">
                         <strong>@review.Reviewer.Name</strong>
                         <p>@review.Text</p>
                         <p class="text-muted">@review.CreatedDateTime.ToShortDateString()</p>
+                        @if ((SignInManager.IsSignedIn(User) && review.Reviewer.UserName == User.Identity.Name) || AdminOrModerator)
+                        {
+                            <div class="d-flex gap-3 mt-5">
+                                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#editModal">Edit&nbsp; <i class="bi bi-wrench"></i></button>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete &nbsp; <i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                            
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="editModalLabel">Edit Review</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="post" asp-area="" asp-controller="Store" asp-action="EditReview" asp-route-productId=@Model.Id>
+                                                <div class="m-3">
+                                                    <label for="Rating" class="form-label">Rating</label>
+                                                    <input type="range" name="Rating" class="form-range" min="1" max="5" step="1" value=@review.Rating id="Rating">
+                                                </div>
+                                                <div class="m-3">
+                                                    <textarea class="form-control" name="Text" rows="3" placeholder="@review.Text"></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-success m-3">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Review</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete this review?
+                                            <div class="review m-3">
+                                                <strong>@review.Reviewer.Name</strong>
+                                                <p>@review.Text</p>
+                                                <p class="text-muted">@review.CreatedDateTime.ToShortDateString()</p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <form method="post" asp-controller="Store" asp-action="DeleteReview" asp-route-reviewId=@review.Id>
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
+                }
+                @if (ViewBag.reviewable)
+                {
+                    <form method="post" class="review mb-2 border border-opacity-50 rounded" asp-area="" asp-controller="Store" asp-action="AddReview" asp-route-productId=@Model.Id>
+                        <div class="m-3">
+                            <label for="Rating" class="form-label">Rating</label>
+                            <input type="range" name="Rating" class="form-range" min="1" max="5" step="1" id="Rating">
+                        </div>
+                        <div class="m-3">
+                            <textarea class="form-control" name="Text" rows="3" placeholder="What do you think of this product!"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success m-3">Submit</button>
+                    </form>
                 }
             </div>
         </div>

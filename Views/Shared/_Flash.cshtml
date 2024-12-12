@@ -1,6 +1,6 @@
 ﻿        @if (TempData["success"] != null)
         {
-            <div class="alert alert-dismissible alert-success">
+            <div class="alert alert-dismissible alert-success m-3">
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 <strong></strong>@TempData["success"]
             </div>
@@ -8,7 +8,7 @@
 
         @if (TempData["info"] != null)
         {
-            <div class="alert alert-dismissible alert-info">
+            <div class="alert alert-dismissible alert-info m-3">
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 <strong></strong>@TempData["info"]
             </div>
@@ -16,7 +16,7 @@
 
         @if (TempData["fail"] != null)
         {
-            <div class="alert alert-dismissible alert-danger">
+            <div class="alert alert-dismissible alert-danger m-3">
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 <strong></strong>@TempData["fail"]
             </div>

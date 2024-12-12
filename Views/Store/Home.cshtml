@@ -1,6 +1,6 @@
 ﻿@model (IEnumerable<Product> orderedByMostOrders, IEnumerable<Product> productsOnSale, IEnumerable<Product> productsAddedLastWeek)
 @{
-    ViewBag.Title = "Egost - Home";
+    ViewData["Title"] = "Home";
     var categories = ViewBag.CategoriesNames as IEnumerable<string>;
 }
 
@@ -69,11 +69,11 @@
                             <div class="card-body">
                                 <h5 class="card-title">@product.Name</h5>
                                 <p class="card-text">
-                                    <span>@($"{product.PriceCents * (1 - product.SalePercent / 100.0) / 100.0:F2}") EGP</span>
+                                    <span><h1>EGP</h1> <strong>@($"{product.PriceCents * (1 - product.SalePercent / 100.0) / 100.0:F2}")</strong></span>
                                     @if (product.SalePercent > 0)
                                     {
-                                        <span class="text-muted"><del>@(product.PriceCents/100.0) EGP</del></span>
-                                        <span class="badge bg-success">@product.SalePercent% OFF</span>
+                                        <span class="text-muted text-decoration-line-through">@(product.PriceCents/100.0)</span>
+                                        <span class="badge bg-success mx-1">@product.SalePercent% OFF</span>
                                     }
                                 </p>
                             </div>
