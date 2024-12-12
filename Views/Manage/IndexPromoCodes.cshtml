@@ -1,0 +1,69 @@
+﻿@model IEnumerable<(PromoCode promoCode, int usedInOrders, int usedInCarts)>
+@{
+    ViewData["Title"] = "PromoCodes";
+}
+
+<table class="table table-hover mb-5">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Percent</th>
+            <th>Max Sale</th>
+            <th>CreatedDateTime</th>
+            <th>used In Orders</th>
+            <th>used In Carts</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var promoCode in Model)
+        {
+            <tr>
+                <td>@promoCode.promoCode.Id</td>
+                <td>@promoCode.promoCode.Code</td>
+                <td>@promoCode.promoCode.Description</td>
+                <td>@(promoCode.promoCode.Active ? "Active" : "Disactive")</td>
+                <td>@promoCode.promoCode.Percent</td>
+                <td>@string.Format("{0:F2}", promoCode.promoCode.MaxSaleCents / 100.0)</td>
+                <td>@promoCode.promoCode.CreatedDateTime</td>
+                <td>@promoCode.usedInOrders</td>
+                <td>@promoCode.usedInCarts</td>
+                <td>
+                    @if (promoCode.promoCode.Active)
+                    {
+                        <form method="post" asp-area="" asp-controller="Manage" asp-action="DeactivatePromoCode" asp-route-promoId=@promoCode.promoCode.Id>
+                            <button type="submit" onclick="return confirm('Do you want to Deactivate: [@promoCode.promoCode.Code]?');" class="btn btn-sm btn-warning">Deactivate</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-area="" asp-controller="Manage" asp-action="ActivatePromoCode" asp-route-promoId=@promoCode.promoCode.Id>
+                            <button type="submit" onclick="return confirm('Do you want to Activate: [@promoCode.promoCode.Code]?');" class="btn btn-sm btn-warning">Activate</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form class="card p-3" method="post" asp-area="" asp-controller="Manage" asp-action="NewPromoCode">
+    <label class="mt-4">Code:</label>
+    <input required type="text" name="code" />
+
+    <label class="mt-4">Description:</label>
+    <input required type="text" name="description" />
+
+    <label class="mt-4">Percent:</label>
+    <input required type="number" min="0" max="99" name="percent" />
+
+    <label class="mt-4">Max Sale Cents:</label>
+    <input class="mb-3" type="number" min="0" name="maxSaleCents" />
+
+    <button type="submit" class="btn btn-success btn-sm">
+        Add New PromoCode &nbsp; <i class="bi bi-plus-circle"></i>
+    </button>
+</form>

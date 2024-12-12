@@ -1,0 +1,115 @@
+﻿@using Egost.Areas.Identity.Data
+@using Microsoft.AspNetCore.Identity
+@model PaginatedList<(string Id, string Name, string Email, IList<string> Roles)>
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">User Management</h2>
+
+    <!-- Search Box -->
+    <form class="d-flex p-2 border mb-4" asp-action="IndexUsers" method="get">
+        <input type="text" name="targetUser" class="form-control mx-1" placeholder="Search by email" aria-label="User email" value="@ViewData["targetUser"]" />
+        <select name="role" class="form-select mx-1">
+            <option value="">All</option>
+            @foreach (var role in (IQueryable<IdentityRole>)ViewData["Roles"])
+            {
+                <option value="@role.Name" selected="@((string)ViewData["role"] == role.Name ? "selected" : null)">
+                    @role.Name
+                </option>
+            }
+        </select>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+
+    <!-- Users Table -->
+    <table class="table table-hover table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr class="accordion-toggle" data-bs-toggle="collapse" data-bs-target="#collapse-@user.Id">
+                    <td>@user.Id</td>
+                    <td>@user.Name</td>
+                    <td><a href="mailto:@user.Email">@user.Email</a></td>
+                    <td>@string.Join(", ", user.Roles)</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#collapse-@user.Id">Manage</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="p-0">
+                        <div id="collapse-@user.Id" class="accordion-collapse collapse">
+                            <div class="p-3 bg-light">
+                                <!-- Add Role Form -->
+                                <form asp-action="GiveRole" method="post" class="mb-2 d-flex align-items-center">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <select name="roleName" required class="form-select mx-1">
+                                        <option value="" disabled selected>SelectRole</option>
+                                        @foreach (var role in (IQueryable<IdentityRole>)ViewData["Roles"])
+                                        {
+                                            <option value="@role.Name">@role.Name</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-success btn-sm">Add Role</button>
+                                </form>
+
+                                <!-- Remove All Roles Form -->
+                                <form asp-action="RemoveRoles" method="post" class="mb-2">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove All Roles</button>
+                                </form>
+
+                                <!-- View User Orders Button -->
+                                <a asp-action="OrdersDashboard" asp-route-targetUser="@user.Email" class="btn btn-primary btn-sm">
+                                    View Orders
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="IndexUsers" 
+                    asp-route-pageIndex="@(Model.PageIndex - 1)" 
+                    asp-route-role="@ViewData["role"]"
+                    asp-route-targetUser="@ViewData["targetUser"]">Previous</a>
+                </li>
+            }
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="IndexUsers" 
+                    asp-route-pageIndex="@i"
+                    asp-route-role="@ViewData["role"]"
+                    asp-route-targetUser="@ViewData["targetUser"]">@i</a>
+                </li>
+            }
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="IndexUsers" 
+                    asp-route-pageIndex="@(Model.PageIndex + 1)"
+                    asp-route-role="@ViewData["role"]"
+                    asp-route-targetUser="@ViewData["targetUser"]">Next</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

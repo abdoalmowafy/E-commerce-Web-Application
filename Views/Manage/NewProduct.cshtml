@@ -50,8 +50,8 @@
             <span class="text-danger" asp-validation-for="SKU"></span>
         </div>
         <div class="form-group">
-            <label class="col-form-label mt-4" for="inputDefault" asp-for="Warranty"></label>
-            <input type="number" placeholder="Days" min="0" class="form-select" asp-for="Warranty.Days">
+            <label class="col-form-label mt-4" for="inputDefault" asp-for="Warranty">Warranty Days</label>
+            <input type="number" min="14" value="14" class="form-control" asp-for="Warranty.Days">
             <span class="text-danger" asp-validation-for="Warranty"></span>
         </div>
         <div class="form-group">
@@ -60,14 +60,13 @@
             <input type="file" required multiple class="form-control-file" id="Media" name="Media" asp-for="Media">
             <span class="text-danger" asp-validation-for="Media"></span>
         </div>
+
         <!-- Preview Section -->
-        <div class="form-group">
-            <div id="media-preview" class="media-preview"></div>
-        </div>
+        <div id="media-preview" class="media-preview m-3"></div>
 
         <br><br>
         <button type="submit" class="btn btn-success">Submit</button>
-        <a class="btn btn-primary" asp-controller="Store" asp-action="Home">Back to Home</a>
+        <a class="btn btn-info" asp-controller="Store" asp-action="Home">Back to Home</a>
     </div>
 </form>
 
@@ -77,9 +76,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="mediaPreviewModalLabel">File Preview</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <img src="" id="modalImage" style="width: 100%;">
@@ -94,6 +91,6 @@
 @section Scripts{
     <script src="~/js/MediaInput.js"></script>
     @{
-    <partial name="_ValidationScriptsPartial" />
+        <partial name="_ValidationScriptsPartial" />
     }
 }

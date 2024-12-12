@@ -1,0 +1,146 @@
+﻿@model PaginatedList<EditHistory>
+
+@{
+    ViewData["Title"] = "Edit History";
+}
+
+
+
+
+
+<div class="container mt-4">
+    <div class="row">
+        <h1>Edit History</h1>
+        <!--  Search -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Search</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="StoreRadar" method="get">
+                        <div class="form-horizontal">
+                            <div class="form-group mb-2">
+                                <label class="form-label">Editor Username</label>
+                                <input type="text" class="form-control" name="editorUsername" value="@ViewData["editorUsername"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Edited Type</label>
+                                <input type="text" class="form-control" name="editedType" value="@ViewData["editedType"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Edited Id</label>
+                                <input type="text" class="form-control" name="editedId" value="@ViewData["editedId"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Edited Field</label>
+                                <input type="text" class="form-control" name="editedField" value="@ViewData["editedField"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Old Data</label>
+                                <input type="text" class="form-control" name="oldData" value="@ViewData["oldData"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">New Data</label>
+                                    <input type="text" class="form-control" name="newData" value="@ViewData["newData"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" name="start" value="@ViewData["start"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="end" value="@ViewData["end"]" />
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data -->
+        <div class="col-md-9">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Editor</th>
+                        <th>Edited Type</th>
+                        <th>Edited Id</th>
+                        <th>Edited Field</th>
+                        <th>Old Date</th>
+                        <th>New Data</th>
+                        <th>Edit Date time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <tr>
+                            <td>@(i + 1 + (Model.PageIndex-1) * 30)</td>
+                            <td>@Model[i].Editor</td>
+                            <td>@Model[i].EditedType</td>
+                            <td>@Model[i].EditedId</td>
+                            <td>@Model[i].EditedField</td>
+                            <td>@Model[i].OldData</td>
+                            <td>@Model[i].NewData</td>
+                            <td>@Model[i].EditDateTime</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<nav aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+        @if (Model.HasPreviousPage)
+        {
+            <li class="page-item">
+                <a class="page-link" asp-action="StoreRadar"
+                   asp-route-editorUsername="@ViewData["editorUsername"]"
+                   asp-route-editedType="@ViewData["editedType"]"
+                   asp-route-editedId="@ViewData["editedId"]"
+                   asp-route-editedField="@ViewData["editedField"]"
+                   asp-route-oldData="@ViewData["oldData"]"
+                   asp-route-newData="@ViewData["newData"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
+            </li>
+        }
+        @for (int i = Math.Max(1, Model.PageIndex - 5); i <= Math.Min(Model.TotalPages, Model.PageIndex + 5); i++)
+        {
+            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                <a class="page-link" asp-action="StoreRadar"
+                   asp-route-editorUsername="@ViewData["editorUsername"]"
+                   asp-route-editedType="@ViewData["editedType"]"
+                   asp-route-editedId="@ViewData["editedId"]"
+                   asp-route-editedField="@ViewData["editedField"]"
+                   asp-route-oldData="@ViewData["oldData"]"
+                   asp-route-newData="@ViewData["newData"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@i">@i</a>
+            </li>
+        }
+        @if (Model.HasNextPage)
+        {
+            <li class="page-item">
+                <a class="page-link" asp-action="StoreRadar"
+                   asp-route-editorUsername="@ViewData["editorUsername"]"
+                   asp-route-editedType="@ViewData["editedType"]"
+                   asp-route-editedId="@ViewData["editedId"]"
+                   asp-route-editedField="@ViewData["editedField"]"
+                   asp-route-oldData="@ViewData["oldData"]"
+                   asp-route-newData="@ViewData["newData"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
+            </li>
+        }
+    </ul>
+</nav>

@@ -1,4 +1,7 @@
 ﻿@model Product
+@{
+    ViewData["Title"] = "Edit Product";
+}
 
 <form method="post">
     <div class="border p-3 mt-4">
@@ -76,33 +79,14 @@
                     <a class="btn btn-primary" asp-controller="Store" asp-action="Home">Back to Home</a>
                 </div>
                 <div class="col-6 text-end">
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete &nbsp; <i class="bi bi-trash3-fill"></i></button>
+                    <form method="post" asp-controller="Manage" asp-action="DeleteProduct" asp-route-Id="@Model.Id">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Do you want to proceed deletion?');">Delete &nbsp; <i class="bi bi-trash3-fill"></i></button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </form>
-
-<!-- Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Item</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete "@Model.Name"?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <form method="post" asp-controller="Manage" asp-action="DeleteProduct" asp-route-Id="@Model.Id">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 

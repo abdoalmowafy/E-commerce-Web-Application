@@ -1,31 +1,55 @@
-﻿@model IEnumerable<dynamic>
+﻿@model (IEnumerable<dynamic> productMetrics, Dictionary<string,int> mostSearchedWords, Dictionary<string,int> mostSearchedCategories)
 @{
     ViewData["Title"] = "Product Metrics Dashboard";
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-5">Product Metrics Dashboard</h2>
+    <h2 class="mb-5 text-center text-primary">Product Metrics Dashboard</h2>
+    
     <div class="row mb-4">
-        <div class="col-md-12">
+        <div class="col-md-12 text-center">
             <h3>Revenue Distribution</h3>
             <canvas id="revenueChart"></canvas>
         </div>
     </div>
 
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-12 text-center">
+            <h3>Most Searched Words</h3>
+            <canvas id="mostSearchedWords"></canvas>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12 text-center">
+            <h3>Most Searched Categories</h3>
+            <canvas id="mostSearchedCategories"></canvas>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
             <h3>Total Sales</h3>
             <canvas id="totalSalesChart"></canvas>
         </div>
-        <div class="col-md-4">
-            <h3>In Cart Rate</h3>
+        <div class="col-md-6">
+            <h3>Total Views</h3>
+            <canvas id="totalViewsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h3>inCart Rate</h3>
             <canvas id="cartRateChart"></canvas>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <h3>Wishlist Rate</h3>
             <canvas id="wishlistChart"></canvas>
         </div>
     </div>
+
+    
 
 
     <table class="table" id="sort">
@@ -44,7 +68,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in Model)
+            @foreach (var product in Model.productMetrics)
             {
                 <tr>
                     <td>@product.Id</td>
@@ -75,13 +99,14 @@
 
 
         // Prepare data for charts
-        var productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+        var productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.productMetrics));
 
         var productNames = productData.map(p => p.Name);
         var totalSalesData = productData.map(p => p.TotalSales);
         var revenueData = productData.map(p => p.Revenue / 100);
         var cartCountData = productData.map(p => p.CartCount);
         var wishlistCountData = productData.map(p => p.WishlistCount);
+        var prductViewsData = productData.map(p => p.ProductViews);
 
         // Revenue Bar Chart
         var revenueCtx = document.getElementById('revenueChart').getContext('2d');
@@ -92,7 +117,64 @@
                 datasets: [{
                     label: 'Revenue (EGP)',
                     data: revenueData,
-                    backgroundColor: '#2196f3'
+                    backgroundColor: '#2196f3',
+                    maxBarThickness: 50
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Most Searched Words Bar Chart
+        var wordsCtx = document.getElementById('mostSearchedWords').getContext('2d');
+        new Chart(wordsCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.mostSearchedWords.Keys)),
+                datasets: [{
+                    label: 'Words frequency',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.mostSearchedWords.Values)),
+                    backgroundColor: '#2196f3',
+                    maxBarThickness: 50
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Most Searched Categories Bar Chart
+        var categoriesCtx = document.getElementById('mostSearchedCategories').getContext('2d');
+        new Chart(categoriesCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.mostSearchedCategories.Keys)),
+                datasets: [{
+                    label: 'Categories frequency',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.mostSearchedCategories.Values)),
+                    backgroundColor: '#2196f3',
+                    maxBarThickness: 50
                 }]
             },
             options: {
@@ -119,6 +201,28 @@
                 datasets: [{
                     label: 'Total Sales',
                     data: totalSalesData,
+                    backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Total Views Pie Chart
+        var viewsCtx = document.getElementById('totalViewsChart').getContext('2d');
+        new Chart(viewsCtx, {
+            type: 'pie',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Views',
+                    data: prductViewsData,
                     backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9e9e9e', '#673ab7', '#e91e63']
                 }]
             },

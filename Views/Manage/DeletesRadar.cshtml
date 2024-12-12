@@ -1,0 +1,119 @@
+﻿@model PaginatedList<DeleteHistory>
+
+@{
+    ViewData["Title"] = "Deletes History";
+}
+
+
+
+
+
+<div class="container mt-4">
+    <div class="row">
+        <h1>Delete History</h1>
+        <!--  Search -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Search</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="DeletesRadar" method="get">
+                        <div class="form-horizontal">
+                            <div class="form-group mb-2">
+                                <label class="form-label">Deleter Username</label>
+                                <input type="text" class="form-control" name="DeleterUsername" value="@ViewData["DeleterUsername"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Deleted Type</label>
+                                <input type="text" class="form-control" name="deletedType" value="@ViewData["deletedType"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Deleted Id</label>
+                                <input type="number" class="form-control" name="deletedId" value="@ViewData["deletedId"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start" value="@ViewData["start"]" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="end" value="@ViewData["end"]" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data -->
+        <div class="col-md-9">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Deletor</th>
+                        <th>Deleted Type</th>
+                        <th>Deleted Id</th>
+                        <th>Delete Date time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <tr>
+                            <td>@(i + 1 + (Model.PageIndex - 1) * 30)</td>
+                            <td>@Model[i].Deleter</td>
+                            <td>@Model[i].DeletedType</td>
+                            <td>@Model[i].DeletedId</td>
+                            <td>@Model[i].DeleteDateTime</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<nav aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+        @if (Model.HasPreviousPage)
+        {
+            <li class="page-item">
+                <a class="page-link" asp-action="DeletesRadar"
+                   asp-route-deleterUsername="@ViewData["deleterUsername"]"
+                   asp-route-deletedType="@ViewData["deletedType"]"
+                   asp-route-deletedId="@ViewData["deletedId"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
+            </li>
+        }
+        @for (int i = Math.Max(1, Model.PageIndex - 5); i <= Math.Min(Model.TotalPages, Model.PageIndex + 5); i++)
+        {
+            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                <a class="page-link" asp-action="DeletesRadar"
+                   asp-route-deleterUsername="@ViewData["deleterUsername"]"
+                   asp-route-deletedType="@ViewData["deletedType"]"
+                   asp-route-deletedId="@ViewData["deletedId"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@i">@i</a>
+            </li>
+        }
+        @if (Model.HasNextPage)
+        {
+            <li class="page-item">
+                <a class="page-link" asp-action="DeletesRadar"
+                   asp-route-deleterUsername="@ViewData["deleterUsername"]"
+                   asp-route-deletedType="@ViewData["deletedType"]"
+                   asp-route-deletedId="@ViewData["deletedId"]"
+                   asp-route-start="@ViewData["start"]"
+                   asp-route-end="@ViewData["end"]"
+                   asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
+            </li>
+        }
+    </ul>
+</nav>

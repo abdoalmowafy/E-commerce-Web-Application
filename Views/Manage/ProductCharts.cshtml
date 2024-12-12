@@ -6,16 +6,39 @@
     var stockPer = 100.0 * Model.SKU / (Model.SKU + Model.totalSales);
 }
 
+
 <div class="container mt-5">
-    <h2 class="text-center mb-5">Metrics for [@Model.Id - @Model.Name]</h2>
+    <div class ="text-center mb-5">
+        <h2> Metrics for [@Model.Id - @Model.Name]</h2>
+        Starting from
+        <form method="get" asp-area="" asp-controller="Manage" asp-action="ProductCharts">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="datetime" name="starting" value="@ViewBag.starting"/>
+            <button type="submit" class="btn btn-sm btn-info">Set</button>
+        </form>
+    </div>
+
     <ul>
         <li>Total Revenue = <strong>@string.Format("{0:N}", Model.revenue)</strong> EGP</li>
+        <li>Views = <strong>@Model.Views</strong> view</li>
         <li>Cart Count = <strong>@Model.cartCount</strong> carts</li>
         <li>Wishlist Count = <strong>@Model.wishlistCount</strong> user wishlists</li>
-        <li>Views = <strong>@Model.Views</strong> view</li>
     </ul>
+
     <div class="row m-5">
-        <!-- Return Rate Chart -->
+        <!-- Sales Over Time Chart -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sales Over Time</h5>
+                    <canvas id="salesOverTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row m-5">
+        <!-- Sales - Returns - Stock Chart -->
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
@@ -24,13 +47,33 @@
                 </div>
             </div>
         </div>
+        <!-- Views Over Time Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Views Over Time</h5>
+                    <canvas id="viewsOverTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Average Rating Chart -->
+    <div class="row m-5">
+        <!-- Rating Chart -->
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Ratings</h5>
                     <canvas id="RatingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Average Over Time Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Average Rating Over Time</h5>
+                    <canvas id="RatingsChart">Average Rating Over Time</canvas>
                 </div>
             </div>
         </div>

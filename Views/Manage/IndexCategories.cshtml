@@ -1,0 +1,86 @@
+﻿@model IEnumerable<Category>
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<table class="table table-hover mb-5">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Product Count</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model)
+        {
+            <tr data-bs-toggle="collapse" data-bs-target="#category-@category.Id">
+                <td>@category.Id</td>
+                <td>@category.Name</td>
+                <td>@category.Products.Count</td>
+                <td>
+                    <a href="@Url.Action("Index", new { Id = category.Id })" class="btn btn-info btn-sm">Products</a>
+                    @if (category.Products.Count > 0)
+                    {
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Can't Delete category that has products!">Delete</button>
+                    }
+                    else
+                    {
+                        <form asp-area="" asp-controller="Manage" asp-action="DeleteCategory" asp-route-categoryId="@category.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Do you want to proceed deleting this category: [@category.Name]?');">Delete</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+            <tr id="category-@category.Id" class="collapse">
+                <td colspan="7">
+                    <div>
+                        <h5 class="text-primary">Order Products</h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Product</th>
+                                    <th>Price (Before Sale)</th>
+                                    <th>Sale Percent</th>
+                                    <th>Stock</th>
+                                    <th>Warranty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in category.Products)
+                                {
+                                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{product.Id}")[0]);
+
+                                    <tr>
+                                        <td>
+                                            <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id>
+                                                <img src="~/Media/ProductMedia/@product.Id/@MainImg" class="img-thumbnail me-3" alt="@product.Name" style="width: 50px; height: 50px;">
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@product.Id>
+                                                @product.Name
+                                            </a>
+                                        </td>
+                                        <td>@((product.PriceCents * (byte)(100 - product.SalePercent) / 10000.0).ToString("F2")) (@((product.PriceCents / 100.0).ToString("F2"))) EGP</td>
+                                        <td>@product.SalePercent %</td>
+                                        <td>@product.SKU</td>
+                                        <td>@product.Warranty.TotalDays Days</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<form class="text-center" method="post" asp-area="" asp-controller="Manage" asp-action="AddCategory">
+    <input type="text" name="categoryName" placeholder="New Category Name" />
+    <button type="submit" class="btn btn-success btn-sm">
+        Add New Category &nbsp; <i class="bi bi-plus-circle"></i>
+    </button>
+</form>

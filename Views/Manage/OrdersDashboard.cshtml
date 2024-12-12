@@ -1,0 +1,432 @@
+﻿@using Egost.Areas.Identity.Data
+@model (PaginatedList<Order> orders, PaginatedList<ReturnProductOrder> returnProductOrders)
+@{
+    ViewData["Title"] = "Orders Dashboard";
+    var status = ViewData["status"] != null ? (int)ViewData["status"] : 0;
+}
+<div class="container mt-4">
+    <h2 class="mb-3">Orders Dashboard</h2>
+    <form class="d-flex p-2 border mb-4" asp-action="OrdersDashboard" method="get">
+        <input type="text" name="targetUser" class="form-control mx-1" placeholder="Search customer by email" aria-label="User email" value="@ViewData["targetUser"]" />
+        <select name="status" class="form-select mx-1" >
+            <option value="">All</option> 
+            <option value="1" selected="@(status == 1 ? "selected" : null)">Processing</option>
+            <option value="2" selected="@(status == 2 ? "selected" : null)">On the way</option>
+            <option value="3" selected="@(status == 3 ? "selected" : null)">Done</option>
+            <option value="4" selected="@(status == 4 ? "selected" : null)">Deleted</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+
+
+    <ul class="nav nav-tabs mt-3" role="tablist">
+        <li class="nav-item flex-grow-1 text-center" role="presentation">
+            <a class="nav-link active" data-bs-toggle="tab" href="#Orders" aria-selected="true" role="tab">Orders</a>
+        </li>
+        <li class="nav-item flex-grow-1 text-center" role="presentation">
+            <a class="nav-link" data-bs-toggle="tab" href="#Returns" aria-selected="false" role="tab" tabindex="-1">Returns</a>
+        </li>
+    </ul>
+    <div id="myTabContent" class="tab-content">
+        <div class="tab-pane fade active show" id="Orders" role="tabpanel">
+            <div class="container mt-4">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Created Date</th>
+                            <th>Buyer Mail/phone</th>
+                            <th>Total</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.orders)
+                        {
+                            string rowClass = order.DeletedDateTime != null ? "table-danger" :
+                            order.DeliveryDateTime == null ? "table-warning" : "";
+                            <tr class="@rowClass" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
+                                <td>@order.Id</td>
+                                <td>@order.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                                <td>@order.User.Email/@order.User.PhoneNumber</td>
+                                <td>@(order.TotalCents / 100.0) @order.Currency</td>
+                                <td>@order.PaymentMethod</td>
+                                <td>@order.Status</td>
+                                <td>
+                                    <a href="@Url.Action("Index", new { Id = order.Id })" class="btn btn-info btn-sm">Expand</a>
+
+
+                                    @if (order.Status == OrderStatus.Processing)
+                                    {
+                                        <!-- Transporter Modal -->
+                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#transToOrder@(order.Id)Modal">
+                                            Assign Transporter
+                                        </button>
+
+                                        <div class="modal fade" id="transToOrder@(order.Id)Modal" tabindex="-1" aria-labelledby="transToOrder@(order.Id)ModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="transToOrder@(order.Id)ModalLabel">Assign Transporter Order</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form asp-area="" asp-controller="Manage" asp-action="AssignTransporterToOrder" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                                                        <div class="modal-body">
+                                                            Availabe transporters:
+                                                            <select name="transporterId" required class="form-select mx-1">
+                                                                @foreach (var transporter in (IEnumerable <dynamic>)ViewData["availableTransporters"])
+                                                                {
+                                                                    <option value="@transporter.Id">@transporter.Name (@transporter.Email)</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    
+                                    @if (order.Status == OrderStatus.OnTheWay)
+                                    {
+                                        <!-- Delivered Modal -->
+                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#delivered@(order.Id)Modal">
+                                            Delivered
+                                        </button>
+
+                                        <div class="modal fade" id="delivered@(order.Id)Modal" tabindex="-1" aria-labelledby="delivered@(order.Id)ModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="delivered@(order.Id)ModalLabel">Delivered Order</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form asp-area="" asp-controller="Manage" asp-action="Delivered" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                                                        <div class="modal-body">
+                                                            Are you sure you delivered this order:
+                                                            <table class="table table-hover">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Product</th>
+                                                                        <th>Quantity</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (var op in order.OrderProducts)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>@op.Product.Name</td>
+                                                                            <td>@op.Quantity</td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                            to this location:
+                                                            <ul class="mb-5">
+                                                                <li><strong>Address Line 1: </strong>@order.Address.AddressLine1</li>
+                                                                <li><strong>Address Line 2: </strong>@order.Address.AddressLine2</li>
+                                                                <li><strong>Postal Code: </strong>@order.Address.PostalCode</li>
+                                                                <li><strong>City: </strong>@order.Address.City</li>
+                                                                <li><strong>Country: </strong>@order.Address.Country</li>
+                                                                <li><strong>Telephone: </strong>@order.Address.Telephone</li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (order.Status == OrderStatus.Processing || order.Status == OrderStatus.OnTheWay)
+                                    {
+                                        <!-- Delete Modal -->
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete@(order.Id)Modal">
+                                            Delete
+                                        </button>
+
+                                        <div class="modal fade" id="delete@(order.Id)Modal" tabindex="-1" aria-labelledby="delete@(order.Id)ModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="delete@(order.Id)ModalLabel">Delete Order</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form asp-area="" asp-controller="Order" asp-action="DeleteOrder" asp-route-orderId="@order.Id" method="post" style="display:inline;">
+                                                        <div class="modal-body">
+                                                            Are you sure you want to delete this order?
+                                                            <table class="table table-hover">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Product</th>
+                                                                        <th>Quantity</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (var op in order.OrderProducts)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>@op.Product.Name</td>
+                                                                            <td>@op.Quantity</td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                            <tr id="order-@order.Id" class="collapse">
+                                <td colspan="7">
+                                    <div>
+                                        <h5 class="text-primary">Address</h5>
+                                        <ul class="mb-5">
+                                            <li><strong>Address Line 1: </strong>@order.Address.AddressLine1</li>
+                                            <li><strong>Address Line 2: </strong>@order.Address.AddressLine2</li>
+                                            <li><strong>Postal Code: </strong>@order.Address.PostalCode</li>
+                                            <li><strong>City: </strong>@order.Address.City</li>
+                                            <li><strong>Country: </strong>@order.Address.Country</li>
+                                            <li><strong>Telephone: </strong>@order.Address.Telephone</li>
+                                        </ul>
+                                        <h5 class="text-primary">Order Products</h5>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Product</th>
+                                                    <th>Price (Before Sale)</th>
+                                                    <th>Sale Percent</th>
+                                                    <th>Quantity</th>
+                                                    <th>Total Price (Before Sale)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var orderProduct in order.OrderProducts)
+                                                {
+                                                    var MainImg = System.IO.Path.GetFileName(Directory.GetFiles($"wwwroot\\Media\\ProductMedia\\{orderProduct.Product.Id}")[0]);
+
+                                                    var afterSalePrice = orderProduct.ProductPriceCents * (100 - orderProduct.SalePercent) / 10000.0;
+                                                    <tr>
+                                                        <td>
+                                                            <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@orderProduct.Product.Id>
+                                                                <img src="~/Media/ProductMedia/@orderProduct.Product.Id/@MainImg" class="img-thumbnail me-3" alt="@orderProduct.Product.Name" style="width: 50px; height: 50px;">
+                                                            </a>
+                                                        </td>
+                                                        <td>@orderProduct.Product.Name</td>
+                                                        <td>@afterSalePrice (@(orderProduct.ProductPriceCents / 100.0)) @order.Currency</td>
+                                                        <td>@orderProduct.SalePercent %</td>
+                                                        <td>@orderProduct.Quantity</td>
+                                                        <td>@(afterSalePrice * orderProduct.Quantity) (@(orderProduct.ProductPriceCents / 100.0 * orderProduct.Quantity)) @order.Currency</td>
+                                                    </tr>
+                                                }
+                                                @if (order.PaymentMethod == PaymentMethod.COD)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <button type="button" class="btn btn-primary">
+                                                                <i class="bi bi-cash-coin"></i>
+                                                            </button>
+                                                        </td>
+                                                        <td>Cash on Deleviry Fee:</td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td>+ 10 EGP</td>
+                                                    </tr>
+                                                }
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td><strong class="text-danger">PromoCode:</strong></td>
+                                                    <td><strong class="text-danger">- @(order.PromoCode == null ? 0 : order.PromoCode.Percent) %</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td><strong class="text-success">Total Order:</strong></td>
+                                                    <td><strong class="text-success">@(order.TotalCents / 100.0)</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="Returns" role="tabpanel">
+            <div class="container mt-4">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Return Product Order ID</th>
+                            <th>Returned Product</th>
+                            <th>Order Id</th>
+                            <th>Order Product Id</th>
+                            <th>Buyer Mail/phone</th>
+                            <th>Return Reason</th>
+                            <th>Quantity</th>
+                            <th>Order Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var returnProductOrder in Model.returnProductOrders)
+                        {
+                            string rowClass = returnProductOrder.DeletedDateTime != null ? "table-danger" :
+                            returnProductOrder.ReturnedDateTime == null ? "table-warning" : "";
+                            <tr>
+                                <td>@returnProductOrder.Id</td>
+                                <td>
+                                    <a asp-area="" asp-controller="Store" asp-action="FullView" asp-route-Id=@returnProductOrder.OrderProduct.Product.Id>
+                                        @returnProductOrder.OrderProduct.Product.Name
+                                    </a>
+                                </td>
+                                <td>@returnProductOrder.Order.Id</td>
+                                <td>@returnProductOrder.OrderProduct.Id</td>
+                                <td>@returnProductOrder.Order.User.Email/@returnProductOrder.Order.User.PhoneNumber</td>
+                                <td>@returnProductOrder.ReturnReason</td>
+                                <td>@returnProductOrder.Quantity</td>
+                                <td>@returnProductOrder.CreatedDateTime.ToString("yyyy-MM-dd")</td>
+                                <td>@returnProductOrder.Status</td>
+                                
+                                <td>
+                                    @if (returnProductOrder.Status == ReturnStatus.Processing && returnProductOrder.Status == ReturnStatus.OnTheWay)
+                                    {
+                                        <!-- Returned Modal -->
+                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#returned@(returnProductOrder.Id)Modal">
+                                            Returned
+                                        </button>
+
+                                        <div class="modal fade" id="returned@(returnProductOrder.Id)Modal" tabindex="-1" aria-labelledby="returned@(returnProductOrder.Id)ModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="returned@(returnProductOrder.Id)ModalLabel">Returned</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form asp-area="" asp-controller="Manage" asp-action="Returned" asp-route-returnProductOrderId="@returnProductOrder.Id" method="post" style="display:inline;">
+                                                        <div class="modal-body">
+                                                            Are you sure you returned return order: [@returnProductOrder.OrderProduct.Product.Name] x @returnProductOrder.Quantity
+                                                            from this address:
+                                                            <ul class="mb-5">
+                                                                <li><strong>Address Line 1: </strong>@returnProductOrder.Order.Address.AddressLine1</li>
+                                                                <li><strong>Address Line 2: </strong>@returnProductOrder.Order.Address.AddressLine2</li>
+                                                                <li><strong>Postal Code: </strong>@returnProductOrder.Order.Address.PostalCode</li>
+                                                                <li><strong>City: </strong>@returnProductOrder.Order.Address.City</li>
+                                                                <li><strong>Country: </strong>@returnProductOrder.Order.Address.Country</li>
+                                                                <li><strong>Telephone: </strong>@returnProductOrder.Order.Address.Telephone</li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if (returnProductOrder.Status == ReturnStatus.Processing)
+                                        {
+                                            <!-- Transporter Modal -->
+                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#transToReturn@(returnProductOrder.Id)Modal">
+                                                Assign Transporter
+                                            </button>
+
+                                            <div class="modal fade" id="transToReturn@(returnProductOrder.Id)Modal" tabindex="-1" aria-labelledby="transToReturn@(returnProductOrder.Id)ModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h1 class="modal-title fs-5" id="transToReturn@(returnProductOrder.Id)ModalLabel">Assign Transporter Return</h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form asp-area="" asp-controller="Manage" asp-action="AssignTransporterToReturnProductOrder" asp-route-orderId="@returnProductOrder.Id" method="post" style="display:inline;">
+                                                            <div class="modal-body">
+                                                                Availabe transporters:
+                                                                <select name="transporterId" required class="form-select mx-1">
+                                                                    @foreach (var transporter in (IEnumerable<dynamic>)ViewData["availableTransporters"])
+                                                                    {
+                                                                        <option value="@transporter.Id">@transporter.Name (@transporter.Email)</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <form asp-area="" asp-controller="Order" asp-action="DeleteReturnProductOrder" asp-route-returnProductOrderId="@returnProductOrder.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Do you want to proceed deleting this return order [@returnProductOrder.OrderProduct.Product.Name]?');">Delete</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            @if (Model.orders.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="OrdersDashboard"
+                       asp-route-targetUser="@ViewData["targetUser"]"
+                       asp-route-undeliveredOnly="@ViewData["undeliveredOnly"]"
+                       asp-route-pageIndex="@(Model.orders.PageIndex - 1)">Previous</a>
+                </li>
+            }
+            @for (int i = Math.Max(1, Model.orders.PageIndex - 2); i <= Math.Min(Model.orders.TotalPages, Model.orders.PageIndex + 2); i++)
+            {
+                <li class="page-item @(i == Model.orders.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="OrdersDashboard"
+                       asp-route-targetUser="@ViewData["targetUser"]"
+                       asp-route-undeliveredOnly="@ViewData["undeliveredOnly"]"
+                       asp-route-pageIndex="@i">@i</a>
+                </li>
+            }
+            @if (Model.orders.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="OrdersDashboard"
+                       asp-route-targetUser="@ViewData["targetUser"]"
+                       asp-route-undeliveredOnly="@ViewData["undeliveredOnly"]"
+                       asp-route-pageIndex="@(Model.orders.PageIndex + 1)">Next</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
