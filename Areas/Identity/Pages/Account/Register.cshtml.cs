@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace Egost.Areas.Identity.Pages.Account
 {
@@ -82,8 +83,7 @@ namespace Egost.Areas.Identity.Pages.Account
 
             [DataType(DataType.Text)]
             [Display(Name = "Gender")]
-            [AllowedValues("Male", "Female")]
-            public string Gender { get; set; }
+            public Gender Gender { get; set; }
 
 
             [Required]
@@ -132,7 +132,7 @@ namespace Egost.Areas.Identity.Pages.Account
                 var user = CreateUser();
 
                 user.Name = Input.Name;
-                user.Gender = Enum.TryParse<Gender>(Input.Gender, out var parsed) ? parsed : null;
+                user.Gender = Input.Gender;
                 user.DOB = Input.DOB;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

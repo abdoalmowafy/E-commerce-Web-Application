@@ -128,7 +128,7 @@ namespace Egost.Areas.Identity.Pages.Account
                 // If the user does not have an account, then ask the user to create an account.
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 ReturnUrl = returnUrl;
-                
+
                 var user = new User
                 {
                     UserName = email,

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Egost.Models;
 using System.Collections.ObjectModel;
 using Egost.Data;
 using Microsoft.EntityFrameworkCore;
@@ -28,13 +27,26 @@ public class AddressesModel(EgostContext db) : PageModel
         var user = await _db.Users.Include(u => u.Addresses).FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
 
         var address = user!.Addresses.FirstOrDefault(a => a.Id == id);
-        if (address != null)
+        if (address == null) return NotFound();
+
+        var activeOrderAddress = _db.Orders.Any(o => o.Address == address && o.DeletedDateTime != null && o.DeliveryDateTime != null);
+        if (activeOrderAddress)
         {
-            user.Addresses.Remove(address);
-            _db.Addresses.Remove(address);
-            _db.Users.Update(user);
-            await _db.SaveChangesAsync();
+            TempData["fail"] = "Address has active Order!";
+            return RedirectToPage();
         }
+
+        var activeReturnAddress = _db.ReturnProductOrders.Any(rpo => rpo.Address == address && rpo.DeletedDateTime != null && rpo.ReturnedDateTime != null);
+        if (activeReturnAddress) 
+        {
+            TempData["fail"] = "Address has active Return Product Order!";
+            return RedirectToPage();
+        }
+
+        user.Addresses.Remove(address);
+        _db.Addresses.Remove(address);
+        _db.Users.Update(user);
+        await _db.SaveChangesAsync();
 
         return RedirectToPage();
     }

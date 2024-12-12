@@ -193,7 +193,7 @@ static async Task SeedSuperUserAsync(UserManager<User> userManager, IConfigurati
             UserName = superUserData["UserName"],
             Email = superUserData["Email"],
             EmailConfirmed = true,
-            Gender = "Male"
+            Gender = Gender.Male
         };
         var result = await userManager.CreateAsync(superUser, superUserData["Password"]!);
         if (result.Succeeded)

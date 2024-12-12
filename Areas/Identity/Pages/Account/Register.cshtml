@@ -20,8 +20,9 @@
             </div>
             <div class="form-floating mb-3">
                 <select asp-for="Input.Gender" class="form-control">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="@Gender.Male">Male</option>
+                    <option value="@Gender.Female">Female</option>
                 </select>
                 <label asp-for="Input.Gender"></label>
                 <span asp-validation-for="Input.Gender" class="text-danger"></span>

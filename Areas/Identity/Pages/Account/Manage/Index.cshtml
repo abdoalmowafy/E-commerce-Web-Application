@@ -24,7 +24,11 @@
                 <label asp-for="Input.DOB" class="form-label"></label>
             </div>
             <div class="form-floating">
-                <input asp-for="Input.Gender" class="form-control" />
+                <select asp-for="Input.Gender" class="form-control">
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="@Gender.Male">Male</option>
+                    <option value="@Gender.Female">Female</option>
+                </select>
                 <label asp-for="Input.Gender" class="form-label"></label>
             </div>
             <div class="form-floating mb-3">
