@@ -165,8 +165,6 @@ namespace Egost.Controllers
         }
 
         [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult ModifyWishlist(int ProductId)
         {
             var user = _db.Users.Include(u => u.WishList).FirstOrDefault(u => u.UserName == User.Identity.Name);

@@ -50,8 +50,6 @@ namespace Egost.Controllers
             return View(cart.CartProducts);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult ModifyProducts(int ProductId, int Count = 1)
         {
             var product = _db.Products.Find(ProductId);
