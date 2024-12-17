@@ -17,7 +17,7 @@ const userRadio = document.getElementById("DeliveryToUserAddress");
 const fee = document.getElementById("fee");
 const total = document.getElementById("total");
 const tel = document.getElementById("identifier");
-const radios = document.getElementsByName("PaymentMethod");
+const radios = document.getElementsByName("paymentMethod");
 
 storeRadio.addEventListener("change", function () {
     storeAddresses.removeAttribute("hidden");
